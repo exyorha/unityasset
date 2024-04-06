@@ -9,10 +9,12 @@
 
 #include <limits>
 
+#include <algorithm>
+#include <execution>
+
 namespace UnityAsset {
 
-    AssetBundleFile::AssetBundleFile() : directoryCompression(UnityCompressionType::LZ4HC), dataCompression(UnityCompressionType::None), blockSize(128 * 1024),
-        assetBundleCRC(0) {
+    AssetBundleFile::AssetBundleFile() : directoryCompression(UnityCompressionType::LZ4HC), dataCompression(UnityCompressionType::None), blockSize(128 * 1024) {
 
     }
 
@@ -182,31 +184,65 @@ namespace UnityAsset {
                 blockdef.flags = static_cast<uint16_t>(UnityCompressionType::None);
             }
         } else {
+
             compressedBody.resize(uncompressedDataBuffer.size());
 
             auto dstPtr = compressedBody.data();
             auto srcPtr = uncompressedDataBuffer.data();
             auto srcEnd = uncompressedDataBuffer.data() + uncompressedDataBuffer.size();
 
+            struct DataChunk {
+                const unsigned char *uncompressedDataStart;
+                size_t uncompressedDataSize;
+
+                bool wasCompressed;
+
+                unsigned char *compressedDataStart;
+                size_t compressedDataSize;
+            };
+
+            std::vector<DataChunk> chunks;
+
             while(srcPtr < srcEnd) {
                 auto block = std::min<size_t>(srcEnd - srcPtr, blockSize);
 
-                size_t outputLengthWritten;
-                auto blockWasCompressed = unityCompress(srcPtr, block, dataCompression, dstPtr, outputLengthWritten);
+                chunks.emplace_back(DataChunk{
+                    .uncompressedDataStart = srcPtr,
+                    .uncompressedDataSize = block,
+                    .wasCompressed = false,
+                    .compressedDataStart = dstPtr,
+                    .compressedDataSize = block
+                });
+
+                srcPtr += block;
+                dstPtr += block;
+            }
+
+            std::for_each(std::execution::par_unseq, chunks.begin(), chunks.end(), [this](DataChunk &chunk) {
+                chunk.wasCompressed = unityCompress(chunk.uncompressedDataStart, chunk.uncompressedDataSize, dataCompression,
+                                                    chunk.compressedDataStart, chunk.compressedDataSize);
+            });
+
+            dstPtr = compressedBody.data();
+
+            for(auto &chunk: chunks) {
+                if(chunk.compressedDataStart != dstPtr) {
+                    memmove(dstPtr, chunk.compressedDataStart, chunk.compressedDataSize);
+                }
 
                 auto &blockdef = directory.blocks.emplace_back();
-                blockdef.compressedSize = outputLengthWritten;
-                blockdef.uncompressedSize = block;
+                blockdef.compressedSize = chunk.compressedDataSize;
+                blockdef.uncompressedSize = chunk.uncompressedDataSize;
 
-                if(blockWasCompressed) {
+                if(chunk.wasCompressed) {
                     blockdef.flags = static_cast<uint16_t>(dataCompression);
                 } else {
                     blockdef.flags = static_cast<uint16_t>(UnityCompressionType::None);
                 }
 
-                srcPtr += block;
-                dstPtr += outputLengthWritten;
+                dstPtr += chunk.compressedDataSize;
             }
+
 
             compressedBody.resize(dstPtr - compressedBody.data());
         }

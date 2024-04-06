@@ -5,8 +5,16 @@
 
 #include <UnityAsset/FileContainer/AssetBundle/AssetBundleFile.h>
 
-int main(int argc, char **argv) {
+#include <UnityAsset/SerializedAsset/SerializedAssetFile.h>
 
+int main(int argc, char **argv) {
+    if(argc < 2) {
+        fprintf(stderr, "Usage: %s <FILE NAME>\n", argv[0]);
+        return 1;
+    }
+
+
+#if 0
     if(argc < 3) {
         fprintf(stderr, "Usage: %s <FILE NAME> <REWRITTEN FILE NAME>\n", argv[0]);
         return 1;
@@ -34,4 +42,14 @@ int main(int argc, char **argv) {
     bundle.serialize(rewritten);
 
     UnityAsset::writeFile(argv[2], rewritten);
+#endif
+
+    for(int argno = 1; argno < argc; argno++) {
+        printf("Parsing %s:\n", argv[argno]);
+        UnityAsset::SerializedAssetFile asset(UnityAsset::Stream(UnityAsset::readFile(argv[argno])));
+        printf(
+            "Unity version: %s\n"
+            "Unity platform: %u\n", asset.unityVersion.c_str(), asset.platform);
+    }
+
 }

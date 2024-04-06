@@ -220,4 +220,20 @@ namespace UnityAsset {
 
         return stream;
     }
+
+    Stream &operator <<(Stream &stream, bool value) {
+        return stream << static_cast<uint8_t>(value);
+    }
+
+    Stream &operator >>(Stream &stream, bool &value) {
+        uint8_t byte;
+        stream >> byte;
+
+        if(byte != 0 && byte != 1)
+            throw std::runtime_error("bad bool value");
+
+        value = byte != 0;
+
+        return stream;
+    }
 }

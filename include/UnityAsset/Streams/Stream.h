@@ -323,6 +323,8 @@ namespace UnityAsset {
     template<>
     Stream &operator>><char>(Stream &stream, std::vector<char> &vector);
 
+    Stream &operator <<(Stream &stream, bool value);
+    Stream &operator >>(Stream &stream, bool &value);
 
 }
 

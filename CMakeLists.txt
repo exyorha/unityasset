@@ -22,6 +22,18 @@ add_library(UnityAsset STATIC
     include/UnityAsset/FileContainer/AssetBundle/AssetBundleFile.h
     FileContainer/AssetBundle/AssetBundleFile.cpp
 
+    include/UnityAsset/SerializedAsset/SerializedAssetFile.h
+    SerializedAsset/SerializedAssetFile.cpp
+
+    include/UnityAsset/SerializedAsset/SerializedObject.h
+    SerializedAsset/SerializedObject.cpp
+
+    include/UnityAsset/SerializedAsset/SerializedType.h
+    SerializedAsset/SerializedType.cpp
+
+    include/UnityAsset/SerializedAsset/TypeTree.h
+    SerializedAsset/TypeTree.cpp
+
     include/UnityAsset/Streams/FileInputOutput.h
     Streams/FileInputOutput.cpp
 
@@ -65,11 +77,14 @@ target_link_libraries(UnityAsset PRIVATE PkgConfig::LZ4 ZLIB::ZLIB)
 
 if(NOT MSVC)
     target_compile_options(UnityAsset PRIVATE -Wall -W)
+    target_link_libraries(UnityAsset PRIVATE tbb)
 endif()
 
-add_executable(assettest assettest.cpp)
-set_target_properties(assettest PROPERTIES
-    CXX_STANDARD 20
-    CXX_STANDARD_REQUIRED TRUE
-)
-target_link_libraries(assettest PRIVATE UnityAsset)
+foreach(executable IN ITEMS assettest make_player_data)
+    add_executable(${executable} ${executable}.cpp)
+    set_target_properties(${executable} PROPERTIES
+        CXX_STANDARD 20
+        CXX_STANDARD_REQUIRED TRUE
+    )
+    target_link_libraries(${executable} PRIVATE UnityAsset)
+endforeach()
