@@ -80,7 +80,7 @@ if(NOT MSVC)
     target_link_libraries(UnityAsset PRIVATE tbb)
 endif()
 
-foreach(executable IN ITEMS assettest make_player_data)
+foreach(executable IN ITEMS assettest)
     add_executable(${executable} ${executable}.cpp)
     set_target_properties(${executable} PROPERTIES
         CXX_STANDARD 20
