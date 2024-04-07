@@ -2,55 +2,6 @@ require_relative 'class_database_types'
 
 require 'rexml/document'
 
-class StringTableString < BinData::Primitive
-    class << self
-        attr_accessor :string_table
-    end
-
-    endian :little
-
-    uint32 :offset
-
-    def get
-        @string ||= begin
-            table = self.class.string_table
-
-            endpos = table.index "\x00", offset
-            raise "unterminated string" if endpos.nil?
-
-            table[offset...endpos]
-        end
-    end
-
-end
-
-class ClassDatabaseClass < BinData::Record
-
-    endian :little
-
-    uint32 :class_id
-    int32 :base_class_id
-    string_table_string :class_name
-    uint32 :field_count
-    array :class_fields, initial_length: :field_count do
-        string_table_string :type_name
-        string_table_string :field_name
-        uint8 :depth
-        uint8 :is_array
-        int32 :field_size
-        uint16 :version
-        uint32 :flags2
-    end
-end
-
-class ClassDatabaseBody < BinData::Record
-    endian :little
-
-    uint32 :class_count
-    array :classes, initial_length: :class_count, type: ClassDatabaseClass
-end
-
-
 def cldb_to_xml(inf, outf)
     header = ClassDatabaseFileHeader.new
     header.read inf
