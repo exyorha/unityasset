@@ -236,4 +236,31 @@ namespace UnityAsset {
 
         return stream;
     }
+
+
+    Stream &Stream::operator <<(float value) {
+        return *this << std::bit_cast<uint32_t>(value);
+    }
+
+    Stream &Stream::operator >>(float &value) {
+        uint32_t ival;
+        *this >> ival;
+
+        value = std::bit_cast<float>(ival);
+
+        return *this;
+    }
+
+    Stream &Stream::operator <<(double value) {
+        return *this << std::bit_cast<uint64_t>(value);
+    }
+
+    Stream &Stream::operator >>(double &value) {
+        uint64_t ival;
+        *this >> ival;
+
+        value = std::bit_cast<double>(ival);
+
+        return *this;
+    }
 }

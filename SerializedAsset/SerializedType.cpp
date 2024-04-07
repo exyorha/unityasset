@@ -31,4 +31,18 @@ namespace UnityAsset {
 
     SerializedType &SerializedType::operator =(SerializedType &&other) noexcept = default;
 
+    void SerializedType::serialize(Stream &output) const {
+        output << classID << m_IsStrippedType << m_ScriptTypeIndex;
+
+        if(m_ScriptID.has_value()) {
+            output << *m_ScriptID;
+        }
+
+        output << m_OldTypeHash;
+
+        if(m_Type.has_value()) {
+            m_Type->serialize(output);
+        }
+    }
+
 }

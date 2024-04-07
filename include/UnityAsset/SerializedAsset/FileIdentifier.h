@@ -23,6 +23,8 @@ namespace UnityAsset {
         std::array<uint8_t, 16> guid;
         uint32_t type;
         std::string pathName;
+
+        void serialize(Stream &stream) const;
     };
 
 }

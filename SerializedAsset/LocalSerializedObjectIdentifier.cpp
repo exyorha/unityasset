@@ -16,4 +16,9 @@ namespace UnityAsset {
 
     LocalSerializedObjectIdentifier &LocalSerializedObjectIdentifier::operator =(LocalSerializedObjectIdentifier &&other) noexcept = default;
 
+    void LocalSerializedObjectIdentifier::serialize(Stream &stream) const {
+        stream << localSerializedFileIndex;
+        stream.alignPosition(4);
+        stream << localIdentifierInFile;
+    }
 }

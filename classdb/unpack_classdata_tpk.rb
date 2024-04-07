@@ -17,8 +17,12 @@ def lzma_decompress(inf, compressed_length, uncompressed_length, outf)
     nil
 end
 
+if ARGV.size != 2
+    warn "Usage: unpack_classdata_tpk <INPUT FILE> <OUTPUT DIRECTORY>"
+end
+
 db = ClassDatabasePackageFileHeader.new
-File.open("classdata.tpk", "rb") do |inf|
+File.open(ARGV[0], "rb") do |inf|
     db.read inf
 
     end_of_header = inf.pos
@@ -32,7 +36,7 @@ File.open("classdata.tpk", "rb") do |inf|
             lzma_decompress inf, db.string_table_len_compressed, db.string_table_len_uncompressed, stringtable
 
             db.files.each do |file|
-                File.open(file.file_name + ".cldb", "wb+") do |outf|
+                File.open("#{ARGV[1]}/#{file.file_name}.cldb", "wb+") do |outf|
                    IO.copy_stream classfile, outf, file.file_length, file.file_offset
 
                    outf.rewind

@@ -15,6 +15,8 @@ namespace UnityAsset {
 
         TypeTree(TypeTree &&other) noexcept;
         TypeTree &operator =(TypeTree &&other) noexcept;
+
+        void serialize(Stream &stream) const;
     };
 
 }

@@ -30,6 +30,10 @@ namespace UnityAsset {
             return m_flags;
         }
 
+        inline void replace(Stream &&data)  {
+            m_data = std::move(data);
+        }
+
     private:
         std::string m_filename;
         Stream m_data;

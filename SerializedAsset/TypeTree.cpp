@@ -14,4 +14,10 @@ namespace UnityAsset {
     TypeTree::TypeTree(TypeTree &&other) noexcept = default;
 
     TypeTree &TypeTree::operator =(TypeTree &&other) noexcept = default;
+
+    void TypeTree::serialize(Stream &stream) const {
+        (void)stream;
+        throw std::logic_error("Type tree serialization is not currently supported");
+
+    }
 }

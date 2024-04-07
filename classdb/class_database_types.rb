@@ -313,6 +313,9 @@ class ClassDatabase
 
             @fields.each do |field|
                 field.field_name = clean_field_name field.field_name
+                if field.field_name == field.type.type_name
+                    field.field_name = "v" + field.type.type_name
+                end
             end
         end
 
@@ -321,7 +324,7 @@ class ClassDatabase
         def clean_field_name(name)
             name = name.gsub /[^0-9_a-zA-Z]/, "_"
 
-            name.sub!(/\A([0-9])/) { "_#{$1}" }
+            name.sub!(/\A([0-9])/) { "v#{$1}" }
 
             name
         end
@@ -383,7 +386,7 @@ class ClassDatabase
         parent_def = nil
 
         if class_def.base_class_id >= 0
-            parent_def = emit_class_def class_def.base_class_id
+            parent_def = emit_class_def class_def.base_class_id.to_i
         end
 
         class_definition = ClassDefinition.new(class_id, class_def.class_name.to_str, parent_def)

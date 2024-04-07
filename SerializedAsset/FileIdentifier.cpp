@@ -19,5 +19,11 @@ namespace UnityAsset {
 
     FileIdentifier &FileIdentifier::operator =(FileIdentifier &&other) noexcept = default;
 
+    void FileIdentifier::serialize(Stream &stream) const {
+        stream.writeNullTerminatedString(std::string_view());
+        stream << guid;
+        stream << type;
+        stream.writeNullTerminatedString(pathName);
+    }
 }
 

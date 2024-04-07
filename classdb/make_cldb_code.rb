@@ -3,7 +3,7 @@ require_relative 'class_database_types'
 BUILTIN_TYPES = {
     "SInt8" => "int8_t",
     "UInt8" => "uint8_t",
-    "char" => "char",
+    "char" => "uint8_t", # Probably UTF-8 byte
     "bool" => "bool",
 
     "SInt16" => "int16_t",
@@ -59,12 +59,9 @@ header.write <<EOF
 #include <utility>
 #include <vector>
 #include <string>
+#include <array>
 
-namespace UnityAsset {
-
-    class UnityTypeSerializer;
-
-}
+#include <UnityAsset/UnityTypeSerializer.h>
 
 namespace UnityAsset::UnityTypes {
 
@@ -135,6 +132,29 @@ EOF
   };
 
 EOF
+end
+
+database.classes.each do |classdef|
+    contents = classdef.toplevel
+
+    header.puts "static constexpr uint32_t #{classdef.class_name}ClassID = #{classdef.class_id};"
+
+    unless contents.nil?
+
+        ref = compose_type_ref contents
+
+        header.write <<EOF
+
+static inline #{ref} deserialize#{classdef.class_name}(const Stream &stream) {
+    return UnityTypeSerializer::deserializeObject<#{ref}>(stream, #{contents.flags});
+}
+
+static inline Stream serialize#{classdef.class_name}(#{ref} &value) {
+    return UnityTypeSerializer::serializeObject(value, #{contents.flags});
+}
+
+EOF
+    end
 end
 
 header.write <<EOF

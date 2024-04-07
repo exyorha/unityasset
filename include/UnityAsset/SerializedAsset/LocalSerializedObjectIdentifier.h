@@ -20,6 +20,8 @@ namespace UnityAsset {
 
         int32_t localSerializedFileIndex;
         int64_t localIdentifierInFile;
+
+        void serialize(Stream &stream) const;
     };
 
 }

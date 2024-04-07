@@ -94,4 +94,85 @@ namespace UnityAsset {
             throw std::runtime_error("did not reach the end of metadata while parsing");
         }
     }
+
+    void SerializedAssetFile::serialize(Stream &output) const {
+        /*
+         * Begin by serializing the metadata.
+         */
+
+        Stream metadataStream;
+        metadataStream.setByteOrder(Stream::ByteOrder::LeastSignificantFirst);
+        metadataStream.writeNullTerminatedString(unityVersion);
+        metadataStream << platform;
+
+        metadataStream << typeTreeEnabled;
+
+        metadataStream << static_cast<int32_t>(m_Types.size());
+        for(const auto &type: m_Types) {
+            type.serialize(metadataStream);
+        }
+
+        size_t dataOffset = 0;
+
+        metadataStream << static_cast<int32_t>(m_Objects.size());
+        for(const auto &object: m_Objects) {
+            metadataStream.alignPosition(4);
+            metadataStream << object.m_PathID;
+
+            metadataStream << static_cast<uint32_t>(dataOffset);
+            metadataStream << static_cast<uint32_t>(object.objectData.length());
+
+            dataOffset += object.objectData.length();
+            dataOffset = (dataOffset + 15) & ~15;
+
+            metadataStream << object.typeIndex;
+        }
+
+        metadataStream << static_cast<int32_t>(m_ScriptTypes.size());
+        for(const auto &scriptType: m_ScriptTypes) {
+            scriptType.serialize(metadataStream);
+        }
+
+        metadataStream << static_cast<int32_t>(m_Externals.size());
+        for(const auto &external: m_Externals) {
+            external.serialize(metadataStream);
+        }
+
+        metadataStream << static_cast<int32_t>(m_RefTypes.size());
+        for(const auto &refType: m_RefTypes) {
+            refType.serialize(metadataStream);
+        }
+
+        metadataStream.writeNullTerminatedString(userInformation);
+
+        /*
+         * Now that we know the exact structure of the file, we can write it.
+         */
+
+        uint32_t dataSectionOffset = (metadataStream.length() + 4095) & ~4095;
+
+        output.setByteOrder(Stream::ByteOrder::MostSignificantFirst);
+        output << static_cast<uint32_t>(metadataStream.length());
+
+        auto fileSizeOffset = output.position();
+        output << static_cast<uint32_t>(0); // file size - will be fixed later
+
+        output << AssetVersion;
+        output << dataSectionOffset;
+        output << static_cast<uint32_t>(0); // flags - always 0
+
+        output.writeData(metadataStream.data(), metadataStream.length());
+        output.setPosition(dataSectionOffset);
+
+        for(const auto &object: m_Objects) {
+            output.alignPosition(16);
+            output.writeData(object.objectData.data(), object.objectData.length());
+        }
+
+        auto fileSize = output.position();
+        output.setPosition(fileSizeOffset);
+        output << static_cast<uint32_t>(fileSize);
+
+        output.setPosition(fileSize);
+    }
 }

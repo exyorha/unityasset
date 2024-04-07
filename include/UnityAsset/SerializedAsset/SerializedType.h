@@ -24,6 +24,8 @@ namespace UnityAsset {
         SerializedType(SerializedType &&other) noexcept;
         SerializedType &operator =(SerializedType &&other) noexcept;
 
+        void serialize(Stream &output) const;
+
         int32_t classID;
         bool m_IsStrippedType;
         int16_t m_ScriptTypeIndex;
