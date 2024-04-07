@@ -22,6 +22,12 @@ add_library(UnityAsset STATIC
     include/UnityAsset/FileContainer/AssetBundle/AssetBundleFile.h
     FileContainer/AssetBundle/AssetBundleFile.cpp
 
+    include/UnityAsset/SerializedAsset/FileIdentifier.h
+    SerializedAsset/FileIdentifier.cpp
+
+    include/UnityAsset/SerializedAsset/LocalSerializedObjectIdentifier.h
+    SerializedAsset/LocalSerializedObjectIdentifier.cpp
+
     include/UnityAsset/SerializedAsset/SerializedAssetFile.h
     SerializedAsset/SerializedAssetFile.cpp
 
@@ -80,11 +86,3 @@ if(NOT MSVC)
     target_link_libraries(UnityAsset PRIVATE tbb)
 endif()
 
-foreach(executable IN ITEMS assettest)
-    add_executable(${executable} ${executable}.cpp)
-    set_target_properties(${executable} PROPERTIES
-        CXX_STANDARD 20
-        CXX_STANDARD_REQUIRED TRUE
-    )
-    target_link_libraries(${executable} PRIVATE UnityAsset)
-endforeach()

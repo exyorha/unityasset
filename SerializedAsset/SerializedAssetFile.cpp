@@ -41,14 +41,10 @@ namespace UnityAsset {
 
         metadataStream >> typeTreeEnabled;
 
-        printf("header ended at %zu, metadata size: %u, data offset: %u, type tree enabled: %d\n", stream.position(), metadataSize, dataOffset, typeTreeEnabled);
-
         int32_t typeCount;
         metadataStream >> typeCount;
 
         m_Types.reserve(typeCount);
-
-        printf("type count: %d\n", typeCount);
 
         for(int32_t element = 0; element < typeCount; element++) {
             m_Types.emplace_back(metadataStream, false, typeTreeEnabled);
@@ -57,26 +53,45 @@ namespace UnityAsset {
         int32_t objectCount;
         metadataStream >> objectCount;
 
-        printf("object count: %d\n", objectCount);
-
         m_Objects.reserve(objectCount);
 
+        auto dataArea = stream.createView(dataOffset);
+
         for(int32_t element = 0; element < objectCount; element++) {
-            m_Objects.emplace_back(metadataStream);
+            m_Objects.emplace_back(metadataStream, dataArea);
         }
 
         int32_t scriptTypeCount;
         metadataStream >> scriptTypeCount;
 
-        printf("script type count: %d\n", scriptTypeCount);
-/*
         m_ScriptTypes.reserve(scriptTypeCount);
 
         for(int32_t element = 0; element < scriptTypeCount; element++) {
             m_ScriptTypes.emplace_back(metadataStream);
         }
-*/
-        printf("metadata position: %zu out of %zu\n", metadataStream.position(), metadataStream.length());
 
+        int32_t externalCount;
+        metadataStream >> externalCount;
+
+        m_Externals.reserve(externalCount);
+
+        for(int32_t element = 0; element < externalCount; element++) {
+            m_Externals.emplace_back(metadataStream);
+        }
+
+        int32_t refTypeCount;
+        metadataStream >> refTypeCount;
+
+        m_RefTypes.reserve(refTypeCount);
+
+        for(int32_t element = 0; element < refTypeCount; element++) {
+            m_RefTypes.emplace_back(metadataStream, true, typeTreeEnabled);
+        }
+
+        userInformation = metadataStream.readNullTerminatedString();
+
+        if(metadataStream.position() != metadataStream.length()) {
+            throw std::runtime_error("did not reach the end of metadata while parsing");
+        }
     }
 }

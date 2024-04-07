@@ -2,19 +2,17 @@
 
 #include <UnityAsset/Streams/Stream.h>
 
-#include <cinttypes>
-
 namespace UnityAsset {
 
-    SerializedObject::SerializedObject(Stream &input) {
+    SerializedObject::SerializedObject(Stream &input, Stream &objectDataArea) {
 
-        input.alignPosition(4); // This is what AssetStudio does. TODO: review if it *should* be 4, and not 8
+        input.alignPosition(4);
         input >> m_PathID;
 
+        uint32_t byteStart, byteSize;
         input >> byteStart >> byteSize >> typeIndex;
 
-        printf("path ID: %" PRId64 ", starts at: %u, size: %u bytes, type index: %u\n", m_PathID, byteStart, byteSize, typeIndex);
-
+        objectData = objectDataArea.createView(byteStart, byteSize);
     }
 
     SerializedObject::~SerializedObject() = default;

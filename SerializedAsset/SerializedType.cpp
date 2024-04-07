@@ -17,7 +17,8 @@ namespace UnityAsset {
 
         input >> m_OldTypeHash;
 
-        printf("class ID: %d, stripped: %d, script type index: %d, has script ID: %d\n", classID, m_IsStrippedType, m_ScriptTypeIndex, m_ScriptID.has_value());
+        if(m_IsStrippedType)
+            throw std::logic_error("unsupported m_IsStrippedType flag");
 
         if(hasTypeTree) {
             m_Type.emplace(input);

@@ -145,7 +145,7 @@ namespace UnityAsset {
 
         size_t totalUncompressedSize = 0;
         for(const auto &entry: entries) {
-            totalUncompressedSize += entry.data().length();
+            totalUncompressedSize += (entry.data().length() + 15) & ~15;
         }
 
         std::vector<unsigned char> uncompressedDataBuffer(totalUncompressedSize);
@@ -159,7 +159,7 @@ namespace UnityAsset {
 
             memcpy(uncompressedDataBuffer.data() + position, entry.data().data(), entry.data().length());
 
-            position += file.fileSize;
+            position += (file.fileSize + 15) & ~15;
         }
 
         if(assetBundleCRC.has_value()) {

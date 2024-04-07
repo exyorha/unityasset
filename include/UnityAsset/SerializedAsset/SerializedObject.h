@@ -3,13 +3,15 @@
 
 #include <cstdint>
 
+#include <UnityAsset/Streams/Stream.h>
+
 namespace UnityAsset {
 
     class Stream;
 
     class SerializedObject {
     public:
-        explicit SerializedObject(Stream &input);
+        explicit SerializedObject(Stream &input, Stream &objectDataArea);
         ~SerializedObject();
 
         SerializedObject(const SerializedObject &other) = delete;
@@ -19,8 +21,7 @@ namespace UnityAsset {
         SerializedObject &operator =(SerializedObject &&other) noexcept;
 
         int64_t m_PathID;
-        uint32_t byteStart;
-        uint32_t byteSize;
+        Stream objectData;
         uint32_t typeIndex;
     };
 

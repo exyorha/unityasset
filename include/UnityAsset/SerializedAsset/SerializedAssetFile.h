@@ -7,6 +7,8 @@
 
 #include <UnityAsset/SerializedAsset/SerializedType.h>
 #include <UnityAsset/SerializedAsset/SerializedObject.h>
+#include <UnityAsset/SerializedAsset/LocalSerializedObjectIdentifier.h>
+#include <UnityAsset/SerializedAsset/FileIdentifier.h>
 
 namespace UnityAsset {
 
@@ -36,7 +38,10 @@ namespace UnityAsset {
         bool typeTreeEnabled = false;
         std::vector<SerializedType> m_Types;
         std::vector<SerializedObject> m_Objects;
-        //std::vector<LocalSerializedObjectIdentifier> m_ScriptTypes;
+        std::vector<LocalSerializedObjectIdentifier> m_ScriptTypes;
+        std::vector<FileIdentifier> m_Externals;
+        std::vector<SerializedType> m_RefTypes;
+        std::string userInformation;
 
     private:
         static constexpr uint32_t AssetVersion = 21;
