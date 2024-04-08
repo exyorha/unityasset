@@ -21,7 +21,7 @@ namespace UnityAsset {
             throw std::logic_error("unsupported m_IsStrippedType flag");
 
         if(hasTypeTree) {
-            m_Type.emplace(input);
+            m_Type.emplace(input, isReferenceType);
         }
     }
 

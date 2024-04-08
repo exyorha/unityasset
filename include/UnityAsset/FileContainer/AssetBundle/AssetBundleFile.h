@@ -58,6 +58,8 @@ namespace UnityAsset {
             return flags & ~UINT32_C(0x3f);
         }
 
+        static uint32_t calculateCRC32Adjustment(uint32_t originalCRC32, uint32_t desiredCRC32);
+
         static constexpr DirectoryFlags BlocksAndDirectoryInfoCombined = UINT32_C(0x40);
         static constexpr DirectoryFlags BlocksInfoAtTheEnd = UINT32_C(0x80);
         static constexpr DirectoryFlags OldWebPluginCompatibility = UINT32_C(0x100);

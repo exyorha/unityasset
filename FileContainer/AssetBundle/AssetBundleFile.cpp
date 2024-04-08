@@ -14,7 +14,8 @@
 
 namespace UnityAsset {
 
-    AssetBundleFile::AssetBundleFile() : directoryCompression(UnityCompressionType::LZ4HC), dataCompression(UnityCompressionType::None), blockSize(128 * 1024) {
+    AssetBundleFile::AssetBundleFile() : directoryCompression(UnityCompressionType::LZ4HC), dataCompression(UnityCompressionType::None),
+        blockSize(128 * 1024) {
 
     }
 
@@ -54,6 +55,8 @@ namespace UnityAsset {
             >> uncompressedDirectoryLength
             >> directoryFlags;
 
+        printf("directory flags: %08X\n", directoryFlags);
+
         if(directoryCompressionOptions(directoryFlags) != BlocksAndDirectoryInfoCombined)
             throw std::runtime_error("AssetBundleFile: unsupported directory options");
 
@@ -72,6 +75,8 @@ namespace UnityAsset {
         size_t totalUncompressedSize = 0;
 
         for(const auto &block: directory.blocks) {
+            printf("block: compressed size %u, uncompressed size %u, flags %u\n",
+                   block.compressedSize, block.uncompressedSize, block.flags);
             totalCompressedSize += block.compressedSize;
             totalUncompressedSize += block.uncompressedSize;
         }
@@ -84,7 +89,6 @@ namespace UnityAsset {
         uncompressedDataBuffer.resize(totalUncompressedSize);
         auto uncompressedData = uncompressedDataBuffer.data();
 
-        size_t likelyBlockSize = 0;
         for(const auto &block: directory.blocks) {
             if((block.flags & ~UINT16_C(0x3F)) != 0) {
                 throw std::runtime_error("AssetBundleFile: unsupported block flags");
@@ -94,20 +98,12 @@ namespace UnityAsset {
 
             if(type != UnityCompressionType::None) {
                 dataCompression = type;
-                likelyBlockSize = std::max<size_t>(likelyBlockSize, block.uncompressedSize);
             }
 
             unityUncompress(compressedData, block.compressedSize, type, uncompressedData, block.uncompressedSize);
             compressedData += block.compressedSize;
             uncompressedData += block.uncompressedSize;
         }
-
-        if(likelyBlockSize != 0) {
-            likelyBlockSize = std::bit_ceil(likelyBlockSize);
-            likelyBlockSize = std::max<size_t>(likelyBlockSize, 16384);
-            blockSize = likelyBlockSize;
-        }
-
         assetBundleCRC.emplace(crc32(UINT32_C(0), uncompressedDataBuffer.data(), uncompressedDataBuffer.size()));
 
         Stream decompressedStream(std::make_shared<InMemoryStreamBackingBuffer>(std::move(uncompressedDataBuffer)));
@@ -115,6 +111,8 @@ namespace UnityAsset {
         entries.reserve(directory.files.size());
 
         for(const auto &file: directory.files) {
+            printf("file: %.*s offset %lu size %lu flags %u\n", static_cast<int>(file.path.size()), file.path.data(), file.fileOffset, file.fileSize, file.fileFlags);
+
             auto view = decompressedStream.createView(file.fileOffset, file.fileSize);
 
             entries.emplace_back(std::string(file.path), std::move(view), file.fileFlags);
@@ -166,8 +164,19 @@ namespace UnityAsset {
             auto contentCRC = static_cast<uint32_t>(crc32(UINT32_C(0), uncompressedDataBuffer.data(), uncompressedDataBuffer.size()));
 
             if(contentCRC != *assetBundleCRC) {
-                printf("Content CRC needs to be corrected from %u to %u\n", contentCRC, *assetBundleCRC);
-                throw std::runtime_error("implement CRC correction");
+                auto adjustment = calculateCRC32Adjustment(contentCRC, *assetBundleCRC);
+
+                uncompressedDataBuffer.insert(uncompressedDataBuffer.end(),
+                                              reinterpret_cast<const unsigned char *>(&adjustment),
+                                              reinterpret_cast<const unsigned char *>(&adjustment) + sizeof(adjustment));
+
+                contentCRC = static_cast<uint32_t>(crc32(contentCRC,
+                                                         uncompressedDataBuffer.data() + uncompressedDataBuffer.size() - sizeof(adjustment),
+                                                         sizeof(adjustment)));
+
+                if(contentCRC != *assetBundleCRC) {
+                    throw std::logic_error("the CRC-32 didn't come to the needed value after adjustment");
+                }
             }
         }
 
@@ -280,4 +289,50 @@ namespace UnityAsset {
         stream.setPosition(endPosition);
 
     }
+
+    /*
+    * This calculates as 32-bit value that can be appended to a block of data
+    * with CRC-32 value of 'originalCRC32' to make the CRC-32 of the combined
+    * data to come out as 'desiredCRC32'.
+    */
+    uint32_t AssetBundleFile::calculateCRC32Adjustment(uint32_t originalCRC32, uint32_t desiredCRC32) {
+
+        /*
+        * The approach and the inverse polynomial are from
+        * "Reversing CRC – Theory and Practice.", HU Berlin Public Report
+        * S AR-PR-2006-05 by Martin Stigge, Henryk Plötz, Wolf Müller,
+        * Jens-Peter Redlich
+        */
+
+        uint32_t adjustment = 0;
+
+        originalCRC32 ^= UINT32_C(0xFFFFFFFF);
+        desiredCRC32 ^= UINT32_C(0xFFFFFFFF);
+
+        for(unsigned int bit = 0; bit < 32; bit++) {
+            /*
+            * Reduce modulo CRC-32 polynomial.
+            */
+
+            if(adjustment & 1) {
+                adjustment = (adjustment >> 1) ^ UINT32_C(0xedb88320);
+            } else {
+                adjustment >>= 1;
+            }
+
+            /*
+            * Add the inverse of the polynomial if the corresponding bit of the
+            * desired CRC-32 is set.
+            */
+
+            if(desiredCRC32 & 1) {
+                adjustment ^= UINT32_C(0x5B358FD3);
+            }
+
+            desiredCRC32 >>= 1;
+        }
+
+        return adjustment ^ originalCRC32;
+    }
+
 }

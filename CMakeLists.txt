@@ -42,6 +42,9 @@ add_library(UnityAsset STATIC
     include/UnityAsset/SerializedAsset/TypeTree.h
     SerializedAsset/TypeTree.cpp
 
+    include/UnityAsset/SerializedAsset/TypeTreeNode.h
+    SerializedAsset/TypeTreeNode.cpp
+
     include/UnityAsset/Streams/FileInputOutput.h
     Streams/FileInputOutput.cpp
 

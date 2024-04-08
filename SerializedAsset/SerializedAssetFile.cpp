@@ -145,12 +145,6 @@ namespace UnityAsset {
 
         metadataStream.writeNullTerminatedString(userInformation);
 
-        /*
-         * Now that we know the exact structure of the file, we can write it.
-         */
-
-        uint32_t dataSectionOffset = (metadataStream.length() + 4095) & ~4095;
-
         output.setByteOrder(Stream::ByteOrder::MostSignificantFirst);
         output << static_cast<uint32_t>(metadataStream.length());
 
@@ -158,11 +152,19 @@ namespace UnityAsset {
         output << static_cast<uint32_t>(0); // file size - will be fixed later
 
         output << AssetVersion;
-        output << dataSectionOffset;
+        auto dataStartOffset = output.position();
+        output << static_cast<uint32_t>(0); // data start offset - will be fixed later
         output << static_cast<uint32_t>(0); // flags - always 0
 
         output.writeData(metadataStream.data(), metadataStream.length());
-        output.setPosition(dataSectionOffset);
+
+        output.alignPosition(4096);
+
+        size_t dataAreaOffset = output.position();
+        output.setPosition(dataStartOffset);
+        output << static_cast<uint32_t>(dataAreaOffset);
+
+        output.setPosition(dataAreaOffset);
 
         for(const auto &object: m_Objects) {
             output.alignPosition(16);
