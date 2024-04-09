@@ -7,6 +7,8 @@
 namespace UnityAsset {
 
     const TextureFormatClassification TextureFormatClassification::RGBA8(TextureEncodingClass::RGBA8, 1, 1);
+    const TextureFormatClassification TextureFormatClassification::RGBA32F(TextureEncodingClass::RGBA32F, 1, 1);
+    const TextureFormatClassification TextureFormatClassification::RGBA16F(TextureEncodingClass::RGBA16F, 1, 1);
     const TextureFormatClassification TextureFormatClassification::DXT1(TextureEncodingClass::DXT1, 4, 4);
     const TextureFormatClassification TextureFormatClassification::DXT5(TextureEncodingClass::DXT5, 4, 4);
 
@@ -40,6 +42,9 @@ namespace UnityAsset {
             case RGBA4444:
                 return TextureFormatClassification(TextureEncodingClass::RGBA4444, 1, 1);
 
+            case RGBAFloat:
+                return TextureFormatClassification(TextureEncodingClass::RGBA32F, 1, 1);
+
             case ETC_RGB4:
                 return TextureFormatClassification(TextureEncodingClass::ETC1, 4, 4);
 
@@ -69,6 +74,24 @@ namespace UnityAsset {
             case TextureFormat::ASTC_RGB_12x12:
             case TextureFormat::ASTC_RGBA_12x12:
                 return TextureFormatClassification(TextureEncodingClass::ASTC_LDR, 12, 12);
+
+            case TextureFormat::ASTC_HDR_4x4:
+                return TextureFormatClassification(TextureEncodingClass::ASTC_HDR, 4, 4);
+
+            case TextureFormat::ASTC_HDR_5x5:
+                return TextureFormatClassification(TextureEncodingClass::ASTC_HDR, 5, 5);
+
+            case TextureFormat::ASTC_HDR_6x6:
+                return TextureFormatClassification(TextureEncodingClass::ASTC_HDR, 6, 6);
+
+            case TextureFormat::ASTC_HDR_8x8:
+                return TextureFormatClassification(TextureEncodingClass::ASTC_HDR, 8, 8);
+
+            case TextureFormat::ASTC_HDR_10x10:
+                return TextureFormatClassification(TextureEncodingClass::ASTC_HDR, 10, 10);
+
+            case TextureFormat::ASTC_HDR_12x12:
+                return TextureFormatClassification(TextureEncodingClass::ASTC_HDR, 12, 12);
 
             default:
                 throw std::runtime_error("unsupported Unity texture format " + std::to_string(static_cast<int32_t>(format)));
@@ -111,6 +134,9 @@ namespace UnityAsset {
             case UnityAsset::TextureEncodingClass::DXT5:
                 return TextureFormat::DXT5;
 
+            case UnityAsset::TextureEncodingClass::RGBA16F:
+                return TextureFormat::RGBAHalf;
+
         default:
             throw std::runtime_error("cannot find a suitable Unity texture format for this format classification");
         }
@@ -120,6 +146,7 @@ namespace UnityAsset {
         switch(m_encodingClass) {
             case UnityAsset::TextureEncodingClass::A8:
                 return 1;
+
 
             case UnityAsset::TextureEncodingClass::DXT1:
                 return 8;
@@ -134,6 +161,7 @@ namespace UnityAsset {
                 return 16;
 
             case UnityAsset::TextureEncodingClass::ASTC_LDR:
+            case UnityAsset::TextureEncodingClass::ASTC_HDR:
                 return 16;
 
             case UnityAsset::TextureEncodingClass::RGB8:
@@ -145,6 +173,12 @@ namespace UnityAsset {
 
             case UnityAsset::TextureEncodingClass::RGBA4444:
                 return 2;
+
+            case UnityAsset::TextureEncodingClass::RGBA32F:
+                return 16;
+
+            case UnityAsset::TextureEncodingClass::RGBA16F:
+                return 8;
 
             default:
                 throw std::logic_error("unsupported encoding class");

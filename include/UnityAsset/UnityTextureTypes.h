@@ -96,6 +96,8 @@ namespace UnityAsset {
         RGBA8,
         ARGB8,
         RGBA4444,
+        RGBA32F,
+        RGBA16F,
 
         /*
          * Desktop compressed formats
@@ -109,6 +111,7 @@ namespace UnityAsset {
         ETC1,
         ETC2_RGBA,
         ASTC_LDR,
+        ASTC_HDR
     };
 
     class ImageStorageInfo {
@@ -183,6 +186,8 @@ namespace UnityAsset {
         TextureFormat unityFormat() const;
 
         static const TextureFormatClassification RGBA8;
+        static const TextureFormatClassification RGBA32F;
+        static const TextureFormatClassification RGBA16F;
         static const TextureFormatClassification DXT1;
         static const TextureFormatClassification DXT5;
 
