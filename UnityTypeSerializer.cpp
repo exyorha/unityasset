@@ -1,7 +1,5 @@
 #include <UnityAsset/UnityTypeSerializer.h>
 
-#include <cstdio>
-
 namespace UnityAsset {
 
     UnityTypeSerializer::UnityTypeSerializer(Direction direction, Stream &stream) : m_direction(direction), m_stream(stream) {

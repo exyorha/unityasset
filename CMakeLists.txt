@@ -69,6 +69,9 @@ add_library(UnityAsset STATIC
     include/UnityAsset/UnityCompression.h
     UnityCompression.cpp
 
+    include/UnityAsset/UnityTextureTypes.h
+    UnityTextureTypes.cpp
+
     include/UnityAsset/UnityTypeSerializer.h
     UnityTypeSerializer.cpp
 

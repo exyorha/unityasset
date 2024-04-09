@@ -24,7 +24,8 @@ BUILTIN_TYPES = {
     "staticvector" => "std::vector",
     "fixed_bitset" => "std::vector",
     "map" => "UnityMap",
-    "set" => "UnitySet"
+    "set" => "UnitySet",
+    "TypelessData" => "UnityTypelessData"
 }
 
 if ARGV.size != 2
@@ -67,6 +68,7 @@ namespace UnityAsset::UnityTypes {
 
   template<typename K, typename V> using UnityMap = std::vector<std::pair<K, V>>;
   template<typename T> using UnitySet = std::vector<T>;
+  using UnityTypelessData = std::vector<uint8_t>;
 
 EOF
 
