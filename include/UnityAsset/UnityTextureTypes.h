@@ -92,6 +92,7 @@ namespace UnityAsset {
          * Uncompressed formats good everywhere
          */
         A8,
+        R8,
         RGB8,
         RGBA8,
         ARGB8,

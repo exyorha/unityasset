@@ -75,6 +75,9 @@ namespace UnityAsset {
             case TextureFormat::ASTC_RGBA_12x12:
                 return TextureFormatClassification(TextureEncodingClass::ASTC_LDR, 12, 12);
 
+            case TextureFormat::R8:
+                return TextureFormatClassification(TextureEncodingClass::R8, 1, 1);
+
             case TextureFormat::ASTC_HDR_4x4:
                 return TextureFormatClassification(TextureEncodingClass::ASTC_HDR, 4, 4);
 
@@ -145,8 +148,8 @@ namespace UnityAsset {
     unsigned int TextureFormatClassification::blockSizeBytes() const {
         switch(m_encodingClass) {
             case UnityAsset::TextureEncodingClass::A8:
+            case UnityAsset::TextureEncodingClass::R8:
                 return 1;
-
 
             case UnityAsset::TextureEncodingClass::DXT1:
                 return 8;
@@ -219,7 +222,7 @@ namespace UnityAsset {
             }
         }
 
-        if(static_cast<int32_t>(runningOffset) != texture.m_CompleteImageSize) {
+        if(static_cast<int32_t>(runningOffset) != texture.m_ImageCount * texture.m_CompleteImageSize) {
             throw std::runtime_error("the complete image size in the asset data doesn't match the total image size");
         }
 
@@ -242,8 +245,40 @@ namespace UnityAsset {
     TextureImageLayout::TextureImageLayout(const UnityAsset::UnityTypes::Cubemap &texture) :
         m_format(TextureFormatClassification::classify(static_cast<TextureFormat>(texture.m_TextureFormat))) {
 
-        throw std::logic_error("Cubemap is not implemented");
+        printf("Cubemap '%s': %dx%d with %d mipmaps, format %d, total %d images, total %d bytes\n",
+               texture.m_Name.c_str(),
+               texture.m_Width, texture.m_Height, texture.m_MipCount, texture.m_TextureFormat, texture.m_ImageCount, texture.m_CompleteImageSize);
 
+        size_t runningOffset = 0;
+
+        for(unsigned int face = 0; face < 6; face++) {
+            for(int32_t mip = 0; mip < texture.m_MipCount; mip++) {
+                auto widthAtMip = std::max<int32_t>(1, texture.m_Width >> mip);
+                auto heightAtMip = std::max<int32_t>(1, texture.m_Height >> mip);
+
+                auto layout = m_format.determineLayout(widthAtMip, heightAtMip);
+
+                auto &image = m_images.emplace_back(layout, runningOffset);
+
+                printf("cubemap face %u mip level %d: active size %ux%u, storage size %ux%u, total data length: %u, offset: %u\n",
+                       face,
+                    mip, layout.activeWidth(), layout.activeHeight(), layout.storedWidth(), layout.storedHeight(), layout.dataLength(),
+                    image.offset());
+
+                runningOffset += image.storageInfo().dataLength();
+            }
+
+        }
+
+        if(texture.m_ImageCount != 6) {
+            throw std::runtime_error("the meaning of 2D textures with any number of images other than 6e is unknown");
+        }
+
+        if(static_cast<int32_t>(runningOffset) != texture.m_ImageCount * texture.m_CompleteImageSize) {
+            throw std::runtime_error("the complete image size in the asset data doesn't match the total image size");
+        }
+
+        m_totalDataSize = runningOffset;
     }
     TextureImageLayout::TextureImageLayout(const UnityAsset::UnityTypes::CubemapArray &texture) :
         m_format(TextureFormatClassification::classify(static_cast<TextureFormat>(texture.m_Format))) {

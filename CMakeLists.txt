@@ -66,6 +66,9 @@ add_library(UnityAsset STATIC
     include/UnityAsset/ShaderBlob.h
     ShaderBlob.cpp
 
+    include/UnityAsset/StreamedResourceManipulator.h
+    StreamedResourceManipulator.cpp
+
     include/UnityAsset/UnityCompression.h
     UnityCompression.cpp
 
