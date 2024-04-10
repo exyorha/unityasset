@@ -148,7 +148,21 @@ class ClassDatabase
                 next_field = iterator.peek
                 break if next_field.nil? || next_field.depth <= field_info.depth
 
-                @fields.push CompleteFieldDefinition.new(iterator)
+                field = CompleteFieldDefinition.new(iterator)
+                @fields.push field
+
+                # Workaround for the ClassInfo definition not being quite correct: string m_NamespaceName follows m_ClassName
+                if type_name == "ClassInfo" && field.field_name == "m_ClassName"
+                    newfield = CompleteFieldDefinition.allocate
+                    newfield.instance_variable_set :@type_name, "string"
+                    newfield.instance_variable_set :@field_name, "m_NamespaceName"
+                    newfield.instance_variable_set :@is_array, false
+                    newfield.instance_variable_set :@field_size, -1
+                    newfield.instance_variable_set :@version, 0
+                    newfield.instance_variable_set :@flags, 49152
+                    newfield.instance_variable_set :@fields, []
+                    @fields.push newfield
+                end
             end
         end
     end

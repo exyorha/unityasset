@@ -43,7 +43,10 @@ namespace UnityAsset {
 
     size_t StreamedResourceManipulator::addNewData(std::vector<unsigned char> &&data) {
         if(!m_newStream.has_value()) {
-            m_newStream.emplace(std::make_shared<InMemoryStreamBackingBuffer>(std::move(data)));
+            auto &stream = m_newStream.emplace(std::make_shared<InMemoryStreamBackingBuffer>(std::move(data)));
+
+            stream.setPosition(stream.length());
+            stream.alignPosition(2);
 
             return 0;
         } else {
