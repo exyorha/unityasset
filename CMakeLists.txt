@@ -107,7 +107,7 @@ endif()
 
 add_custom_command(
     OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/include/UnityAsset/UnityTypes.h
-    COMMAND cmake -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/classdb
+    COMMAND cmake -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/classdb ${CMAKE_CURRENT_BINARY_DIR}/include/UnityAsset
     COMMAND ${RUBY}
         ${CMAKE_CURRENT_SOURCE_DIR}/classdb/unpack_classdata_tpk.rb
         ${CMAKE_CURRENT_SOURCE_DIR}/classdb/classdata.tpk
