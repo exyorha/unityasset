@@ -11,6 +11,7 @@ namespace UnityAsset {
     const TextureFormatClassification TextureFormatClassification::RGBA16F(TextureEncodingClass::RGBA16F, 1, 1);
     const TextureFormatClassification TextureFormatClassification::DXT1(TextureEncodingClass::DXT1, 4, 4);
     const TextureFormatClassification TextureFormatClassification::DXT5(TextureEncodingClass::DXT5, 4, 4);
+    const TextureFormatClassification TextureFormatClassification::BC7(TextureEncodingClass::BC7, 4, 4);
 
     TextureFormatClassification::TextureFormatClassification(TextureEncodingClass encodingClass,
                                                              unsigned int blockWidth, unsigned int blockHeight) :
@@ -137,6 +138,9 @@ namespace UnityAsset {
             case UnityAsset::TextureEncodingClass::DXT5:
                 return TextureFormat::DXT5;
 
+            case UnityAsset::TextureEncodingClass::BC7:
+                return TextureFormat::BC7;
+
             case UnityAsset::TextureEncodingClass::RGBA16F:
                 return TextureFormat::RGBAHalf;
 
@@ -155,6 +159,9 @@ namespace UnityAsset {
                 return 8;
 
             case UnityAsset::TextureEncodingClass::DXT5:
+                return 16;
+
+            case UnityAsset::TextureEncodingClass::BC7:
                 return 16;
 
             case UnityAsset::TextureEncodingClass::ETC1:

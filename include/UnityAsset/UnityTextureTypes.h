@@ -105,6 +105,7 @@ namespace UnityAsset {
          */
         DXT1,
         DXT5,
+        BC7,
 
         /*
          * Mobile compressed formats
@@ -191,6 +192,7 @@ namespace UnityAsset {
         static const TextureFormatClassification RGBA16F;
         static const TextureFormatClassification DXT1;
         static const TextureFormatClassification DXT5;
+        static const TextureFormatClassification BC7;
 
     private:
         TextureEncodingClass m_encodingClass;
