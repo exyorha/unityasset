@@ -55,8 +55,6 @@ namespace UnityAsset {
             >> uncompressedDirectoryLength
             >> directoryFlags;
 
-        printf("directory flags: %08X\n", directoryFlags);
-
         if(directoryCompressionOptions(directoryFlags) != BlocksAndDirectoryInfoCombined)
             throw std::runtime_error("AssetBundleFile: unsupported directory options");
 
@@ -75,8 +73,6 @@ namespace UnityAsset {
         size_t totalUncompressedSize = 0;
 
         for(const auto &block: directory.blocks) {
-            printf("block: compressed size %u, uncompressed size %u, flags %u\n",
-                   block.compressedSize, block.uncompressedSize, block.flags);
             totalCompressedSize += block.compressedSize;
             totalUncompressedSize += block.uncompressedSize;
         }
@@ -111,8 +107,6 @@ namespace UnityAsset {
         entries.reserve(directory.files.size());
 
         for(const auto &file: directory.files) {
-            printf("file: %.*s offset %lu size %lu flags %u\n", static_cast<int>(file.path.size()), file.path.data(), file.fileOffset, file.fileSize, file.fileFlags);
-
             auto view = decompressedStream.createView(file.fileOffset, file.fileSize);
 
             entries.emplace_back(std::string(file.path), std::move(view), file.fileFlags);
