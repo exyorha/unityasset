@@ -175,7 +175,7 @@ class ClassDatabase
             @types = {}
             @sorted_types = []
             @forward_declares = Set.new
-            @packed_bit_vector_count = 0
+            @muldef_type_count = 0
         end
 
         def types
@@ -204,11 +204,11 @@ class ClassDatabase
             elsif unification_name == 'map'
                 container_arguments = 2
                 array_container = true
-            elsif unification_name == 'PackedBitVector'
+            elsif unification_name == 'PackedBitVector' || unification_name == 'Google'
                 # Each instance of PackedBitVector is its own type. It would be nicer to make that an inner type to the outer type,
                 # but that's a lot more work.
-                @packed_bit_vector_count += 1
-                unification_name = unification_name + @packed_bit_vector_count.to_s
+                @muldef_type_count += 1
+                unification_name = unification_name + @muldef_type_count.to_s
             end
 
             unless container_arguments.nil?
