@@ -175,18 +175,11 @@ namespace UnityAsset {
         }
 
         std::vector<unsigned char> compressedBody;
-        if(dataCompression == UnityCompressionType::None) {
-            compressedBody = std::move(uncompressedDataBuffer);
 
-            for(size_t remainingSize = compressedBody.size(), block; remainingSize != 0; remainingSize -= block) {
-                block = std::min<size_t>(remainingSize, std::numeric_limits<int32_t>::max());
-
-                auto &blockdef = directory.blocks.emplace_back();
-                blockdef.compressedSize = block;
-                blockdef.uncompressedSize = block;
-                blockdef.flags = static_cast<uint16_t>(UnityCompressionType::None);
-            }
-        } else {
+        if(dataCompression == UnityCompressionType::LZ4 || dataCompression == UnityCompressionType::LZ4HC) {
+            /*
+             * LZ4-compressed data needs to be chunked.
+             */
 
             compressedBody.resize(uncompressedDataBuffer.size());
 
@@ -248,7 +241,45 @@ namespace UnityAsset {
 
 
             compressedBody.resize(dstPtr - compressedBody.data());
+        } else {
+
+            if(uncompressedDataBuffer.size() > std::numeric_limits<int32_t>::max())
+                throw std::runtime_error("the uncompressed data is too long");
+
+            size_t uncompressedLength = uncompressedDataBuffer.size();
+
+            UnityCompressionType actualCompressionType;
+
+            if(dataCompression == UnityCompressionType::None) {
+                compressedBody = std::move(uncompressedDataBuffer);
+                actualCompressionType = UnityCompressionType::None;
+
+                compressedBody = std::move(uncompressedDataBuffer);
+            } else {
+                compressedBody.resize(uncompressedLength);
+
+                size_t outputLength;
+                if(unityCompress(uncompressedDataBuffer.data(), uncompressedDataBuffer.size(), dataCompression, compressedBody.data(), outputLength)) {
+
+                    compressedBody.resize(outputLength);
+
+                    actualCompressionType = dataCompression;
+                } else {
+                    compressedBody = std::move(uncompressedDataBuffer);
+                    actualCompressionType = UnityCompressionType::None;
+                }
+            }
+
+            if(compressedBody.size() > std::numeric_limits<int32_t>::max())
+                throw std::runtime_error("the compressed data is too long");
+
+
+            auto &blockdef = directory.blocks.emplace_back();
+            blockdef.compressedSize = compressedBody.size();
+            blockdef.uncompressedSize = uncompressedLength;
+            blockdef.flags = static_cast<uint16_t>(actualCompressionType);
         }
+
 
         Stream uncompressedDirectory;
         directory.serialize(uncompressedDirectory);

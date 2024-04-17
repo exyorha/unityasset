@@ -5,6 +5,8 @@
 
 #include <lz4.h>
 #include <lz4hc.h>
+#include <lzma.h>
+#include <array>
 
 namespace UnityAsset {
 
@@ -58,6 +60,47 @@ namespace UnityAsset {
         switch(compression) {
             case UnityCompressionType::None:
                 break;
+
+            case UnityCompressionType::LZMA:
+            {
+                lzma_options_lzma options;
+                if(lzma_lzma_preset(&options, 5))
+                    throw std::runtime_error("lzma_lzma_preset has failed");
+
+                std::array<lzma_filter, 2> filters{ {
+                    { .id = LZMA_FILTER_LZMA1, .options = &options },
+                    { .id = LZMA_VLI_UNKNOWN, .options = nullptr },
+                } };
+
+                uint32_t proplength;
+                auto result = lzma_properties_size(&proplength, filters.data());
+                if(result != LZMA_OK)
+                    throw std::runtime_error("lzma_properties_size has failed");
+
+                size_t prefix = proplength;
+
+                if(prefix >= inputLength) {
+                    return false;
+                }
+
+                result = lzma_properties_encode(filters.data(), outputData);
+                if(result != LZMA_OK)
+                    throw std::runtime_error("lzma_properties_encode has failed");
+
+                outputLength = prefix;
+
+                result = lzma_raw_buffer_encode(filters.data(), nullptr, inputData, inputLength, outputData, &outputLength, inputLength);
+                if(result == LZMA_BUF_ERROR) {
+                    return false;
+                }
+
+                if(result == LZMA_OK) {
+                    printf("LZMA: compressed %zu bytes to %zu bytes\n", inputLength, outputLength);
+                    return true;
+                }
+
+                throw std::runtime_error("lzma_raw_buffer_encode has failed: " + std::to_string(result));
+            }
 
             case UnityCompressionType::LZ4:
             {

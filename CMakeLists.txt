@@ -98,7 +98,7 @@ set_target_properties(UnityAsset PROPERTIES
     CXX_STANDARD 20
     CXX_STANDARD_REQUIRED TRUE
 )
-target_link_libraries(UnityAsset PRIVATE PkgConfig::LZ4 ZLIB::ZLIB)
+target_link_libraries(UnityAsset PRIVATE PkgConfig::LZ4 ZLIB::ZLIB LibLZMA::LibLZMA)
 
 if(NOT MSVC)
     target_compile_options(UnityAsset PRIVATE -Wall -W)
