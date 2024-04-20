@@ -1,0 +1,6 @@
+#ifndef UNITYASSET_CONFIG_H
+#define UNITYASSET_CONFIG_H
+
+#cmakedefine LibLZMA_FOUND
+
+#endif

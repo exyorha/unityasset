@@ -8,7 +8,7 @@ if(NOT TARGET lz4)
     add_library(lz4 ALIAS PkgConfig::LZ4)
 endif()
 
-find_package(LibLZMA REQUIRED)
+find_package(LibLZMA)
 find_package(ZLIB REQUIRED)
 
 find_program(RUBY ruby REQUIRED)
@@ -86,6 +86,17 @@ add_library(UnityAsset STATIC
     ${CMAKE_CURRENT_BINARY_DIR}/include/UnityAsset/UnityTypes.h
 )
 
+if(NOT LibLZMA_FOUND)
+    target_sources(UnityAsset PRIVATE
+        lzmadec/7zTypes.h
+        lzmadec/LzmaDec.c
+        lzmadec/LzmaDec.h
+        lzmadec/Precomp.h
+    )
+endif()
+
+configure_file(UnityAssetConfig.h.in ${CMAKE_CURRENT_BINARY_DIR}/include/UnityAsset/UnityAssetConfig.h @ONLY)
+
 if(WIN32)
     target_sources(UnityAsset PRIVATE
         include/UnityAsset/WindowsError.h
@@ -100,13 +111,24 @@ endif()
 target_include_directories(UnityAsset PUBLIC include ${CMAKE_CURRENT_BINARY_DIR}/include)
 
 set_target_properties(UnityAsset PROPERTIES
+    C_VISIBILITY_PRESET hidden
+    CXX_VISIBILITY_PRESET hidden
+    VISIBILITY_INLINES_HIDDEN TRUE
     CXX_STANDARD 20
     CXX_STANDARD_REQUIRED TRUE
+    POSITION_INDEPENDENT_CODE TRUE
 )
-target_link_libraries(UnityAsset PRIVATE lz4 ZLIB::ZLIB LibLZMA::LibLZMA)
+target_link_libraries(UnityAsset PRIVATE lz4 ZLIB::ZLIB)
+
+if(LibLZMA_FOUND)
+    target_link_libraries(UnityAsset PRIVATE LibLZMA::LibLZMA)
+endif()
 
 if(NOT MSVC)
     target_compile_options(UnityAsset PRIVATE -Wall -W)
+endif()
+
+if(NOT WIN32)
     target_link_libraries(UnityAsset PRIVATE tbb)
 endif()
 

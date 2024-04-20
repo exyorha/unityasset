@@ -44,7 +44,7 @@ namespace UnityAsset {
         uint64_t fileSize;
         stream >> fileSize;
 
-        if(fileSize != stream.length())
+        if(fileSize > stream.length())
             throw std::runtime_error("AssetBundleFile: mismatched file size");
 
         uint32_t compressedDirectoryLength;
@@ -77,7 +77,7 @@ namespace UnityAsset {
             totalUncompressedSize += block.uncompressedSize;
         }
 
-        if(stream.position() + totalCompressedSize != stream.length())
+        if(stream.position() + totalCompressedSize != fileSize)
             throw std::runtime_error("AssetBundleFile: total compressed length is inconsistent with the stream length");
 
         auto compressedData = stream.data() + stream.position();
