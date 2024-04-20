@@ -1,9 +1,14 @@
 cmake_minimum_required(VERSION 3.20)
 project(UnityAsset)
 
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(LZ4 REQUIRED IMPORTED_TARGET liblz4)
+if(NOT TARGET lz4)
+    find_package(PkgConfig REQUIRED)
 
+    pkg_check_modules(LZ4 REQUIRED IMPORTED_TARGET liblz4)
+    add_library(lz4 ALIAS PkgConfig::LZ4)
+endif()
+
+find_package(LibLZMA REQUIRED)
 find_package(ZLIB REQUIRED)
 
 find_program(RUBY ruby REQUIRED)
@@ -98,7 +103,7 @@ set_target_properties(UnityAsset PROPERTIES
     CXX_STANDARD 20
     CXX_STANDARD_REQUIRED TRUE
 )
-target_link_libraries(UnityAsset PRIVATE PkgConfig::LZ4 ZLIB::ZLIB LibLZMA::LibLZMA)
+target_link_libraries(UnityAsset PRIVATE lz4 ZLIB::ZLIB LibLZMA::LibLZMA)
 
 if(NOT MSVC)
     target_compile_options(UnityAsset PRIVATE -Wall -W)
