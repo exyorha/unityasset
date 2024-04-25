@@ -128,6 +128,17 @@ class ClassDatabase
             @parent_class = parent_class
             @toplevel = nil
         end
+
+        def sanitized_class_name
+
+            class_name = self.class_name
+
+            if class_name == "void" || class_name == "int" || class_name == "bool" || class_name == "float"
+                class_name = "BuiltinType_#{class_name}"
+            end
+
+            class_name
+        end
     end
 
     class CompleteFieldDefinition
@@ -190,7 +201,7 @@ class ClassDatabase
 
             if unification_name =~ /\APPtr<(.+)>\Z/
                 unification_name = "PPtr"
-                template_arguments = [ $1 ]
+                template_arguments = [ "UnityClasses::#{$1}" ]
 
                 unless @types.include? $1
                     @forward_declares.add $1

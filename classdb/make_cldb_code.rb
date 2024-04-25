@@ -28,8 +28,8 @@ BUILTIN_TYPES = {
     "TypelessData" => "UnityTypelessData"
 }
 
-if ARGV.size != 2
-    warn "Usage: make_cldb_code <INPUT CLDB FILE> <OUTPUT HEADER FILE>"
+if ARGV.size != 3
+    warn "Usage: make_cldb_code <INPUT CLDB FILE> <OUTPUT HEADER FILE> <OUTPUT SORCE FILE>"
     exit 1
 end
 
@@ -39,20 +39,33 @@ database =
     end
 
 header = File.open(ARGV[1], "wb")
+source = File.open(ARGV[2], "wb")
 
-header.write <<EOF
+[ header, source ].each do |file|
+    file.write <<EOF
 /*
  * This is an automatically-generated Unity serialization type definition
  * class targeting the following versions:
 EOF
 
 database.unity_versions.each do |version|
-    header.puts " * - #{version}"
+    file.puts " * - #{version}"
 end
 
-header.write <<EOF
+file.write <<EOF
  */
 
+EOF
+end
+
+source.write <<EOF
+#include <UnityAsset/UnityTypes.h>
+#include <UnityAsset/UnityTypeSerializer.h>
+
+namespace UnityAsset {
+EOF
+
+header.write <<EOF
 #ifndef UNITY_ASSET_UNITY_CLASSES_H
 #define UNITY_ASSET_UNITY_CLASSES_H
 
@@ -62,7 +75,27 @@ header.write <<EOF
 #include <string>
 #include <array>
 
-#include <UnityAsset/UnityTypeSerializer.h>
+#include <UnityAsset/Environment/ObjectPointer.h>
+#include <UnityAsset/Environment/Downcastable.h>
+
+namespace UnityAsset::UnityClasses {
+EOF
+
+database.classes.each do |classdef|
+
+    header.puts "  struct #{classdef.sanitized_class_name};"
+
+end
+
+
+header.write <<EOF
+
+}
+
+namespace UnityAsset {
+    class UnityTypeSerializer;
+    class LoadedSerializedAsset;
+}
 
 namespace UnityAsset::UnityTypes {
 
@@ -73,7 +106,7 @@ namespace UnityAsset::UnityTypes {
 EOF
 
 def compose_type_ref(field)
-    ref = BUILTIN_TYPES.fetch(field.type.type_name, field.type.type_name)
+    ref = BUILTIN_TYPES.fetch(field.type.type_name, "UnityTypes::#{field.type.type_name}")
 
     if field.type.template_argument_count != 0
 
@@ -95,6 +128,28 @@ def compose_type_ref(field)
     ref
 end
 
+def write_template(type, file)
+    if type.template_argument_count != 0
+        file.write "  template<"
+
+        (0...type.template_argument_count).each do |index|
+            if index != 0
+                file.write ", "
+            end
+            file.write "typename T#{index + 1}"
+        end
+        file.puts ">"
+    end
+end
+
+def template_args(type)
+    if type.template_argument_count == 0
+        ""
+    else
+        "<#{(1..type.template_argument_count).map { |index| "T#{index}" }.join(", ")}>"
+    end
+end
+
 database.types.forward_declares.each do |type_name|
     header.puts "  struct #{type_name};"
 end
@@ -102,61 +157,152 @@ end
 database.types.types.each do |type|
     next if BUILTIN_TYPES.include?(type.type_name) || type.type_name == "Array"
 
-    if type.template_argument_count != 0
-        header.write "  template<"
+    write_template type, header
 
-        (0...type.template_argument_count).each do |index|
-            if index != 0
-                header.write ", "
-            end
-            header.write "typename T#{index + 1}"
-        end
-        header.puts ">"
+    header.write "  struct #{type.type_name}";
+
+    if type.type_name == "PPtr"
+        header.write " final : public ObjectPointer<T1>"
     end
 
-    header.puts "  struct #{type.type_name} {"
+    header.puts " {";
 
     type.fields.each do |field|
         header.puts "    #{compose_type_ref field} #{field.field_name};"
     end
 
-    header.write <<EOF
 
-    void serialize(UnityTypeSerializer &serializer) {
-EOF
+    header.puts "    void serialize(UnityTypeSerializer &serializer);"
+
+    write_template type, source
+
+    source.puts "    void UnityTypes::#{type.type_name}#{template_args type}::serialize(UnityTypeSerializer &serializer) {"
 
     type.fields.each do |field|
-        header.puts "      serializer.serialize(#{field.field_name}, #{field.flags});"
+        source.puts "      serializer.serialize(#{field.field_name}, #{field.flags});"
     end
 
-    header.write <<EOF
-    }
-  };
+    if type.type_name == "PPtr"
+        source.puts "      serializer.bindPointer<T1>(*this);"
+    end
 
+    source.puts "    }";
+
+    header.puts "};";
+end
+
+header.write <<EOF
+}
+
+namespace UnityAsset::UnityClasses {
 EOF
+
+concrete_implementations = Hash.new { |h, k| h[k] = [] }
+
+database.classes.each do |classdef|
+    chain = classdef
+    until chain.nil?
+        concrete_implementations[chain].push classdef
+        chain = chain.parent_class
+    end
 end
 
 database.classes.each do |classdef|
+    ref = nil
+
     contents = classdef.toplevel
-
-    header.puts "static constexpr uint32_t #{classdef.class_name}ClassID = #{classdef.class_id};"
-
     unless contents.nil?
-
         ref = compose_type_ref contents
-
-        header.write <<EOF
-
-static inline #{ref} deserialize#{classdef.class_name}(const Stream &stream) {
-    return UnityTypeSerializer::deserializeObject<#{ref}>(stream, #{contents.flags});
-}
-
-static inline Stream serialize#{classdef.class_name}(#{ref} &value) {
-    return UnityTypeSerializer::serializeObject(value, #{contents.flags});
-}
-
-EOF
     end
+
+    name = classdef.sanitized_class_name
+
+    header.write "struct #{name}"
+
+    parent_classes = []
+
+    if concrete_implementations[classdef].size <= 1
+        header.write " final"
+    end
+
+    if classdef.parent_class.nil?
+        parent_classes.push "public Downcastable"
+    else
+        parent_classes.push "public UnityClasses::#{classdef.parent_class.sanitized_class_name}"
+    end
+
+    unless ref.nil?
+        parent_classes.push "public virtual #{ref}"
+    end
+
+    unless parent_classes.empty?
+        header.write ": #{parent_classes.join ", "}"
+    end
+
+    header.write <<EOF
+{
+    static constexpr uint32_t ClassID = #{classdef.class_id};
+
+    #{name}();
+    ~#{name}() override;
+
+    int32_t classId() const override;
+
+    bool canBeCastTo(int32_t classId) const override;
+EOF
+
+    source.write <<EOF
+UnityClasses::#{name}::#{name}() = default;
+
+UnityClasses::#{name}::~#{name}() = default;
+
+int32_t UnityClasses::#{name}::classId() const {
+    return ClassID;
+}
+
+bool UnityClasses::#{name}::canBeCastTo(int32_t classId) const {
+    return classId == ClassID
+EOF
+
+    unless classdef.parent_class.nil?
+        source.write " || UnityClasses::#{classdef.parent_class.class_name}::canBeCastTo(classId)"
+    end
+
+    source.puts ";"
+    source.puts "}"
+
+    if !ref.nil? || classdef.parent_class.nil?
+
+        header.puts "  void deserialize(const Stream &stream);"
+        source.puts "void UnityClasses::#{name}::deserialize(const Stream &stream) {"
+        if ref.nil?
+            source.puts "    (void)stream;"
+        else
+            source.puts "    UnityTypeSerializer::deserializeObject(stream, #{contents.flags}, static_cast<#{ref} &>(*this));"
+        end
+        source.puts "  }"
+
+        header.puts "  void serialize(Stream &stream);"
+        source.puts "  void UnityClasses::#{name}::serialize(Stream &stream) {"
+        if ref.nil?
+            source.puts "    (void)stream;"
+        else
+            source.puts "    UnityTypeSerializer::serializeObject(static_cast<#{ref} &>(*this), #{contents.flags}, stream);"
+        end
+        source.puts "  }"
+
+
+        header.puts "void link(LoadedSerializedAsset *asset) override;"
+        source.puts "void UnityClasses::#{name}::link(LoadedSerializedAsset *asset) {"
+        if ref.nil?
+            source.puts "    (void)asset;"
+        else
+            source.puts "    UnityTypeSerializer::linkObject(asset, static_cast<#{ref} &>(*this), #{contents.flags});"
+        end
+        source.puts "}"
+    end
+
+    header.puts "};"
 end
 
 header.write <<EOF
@@ -165,3 +311,6 @@ header.write <<EOF
 #endif
 
 EOF
+
+source.puts "}"
+

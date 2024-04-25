@@ -14,6 +14,17 @@ find_package(ZLIB REQUIRED)
 find_program(RUBY ruby REQUIRED)
 
 add_library(UnityAsset STATIC
+    include/UnityAsset/Environment/Downcastable.h
+    Environment/Downcastable.cpp
+
+    include/UnityAsset/Environment/LinkedEnvironment.h
+    Environment/LinkedEnvironment.cpp
+
+    include/UnityAsset/Environment/LoadedSerializedAsset.h
+    Environment/LoadedSerializedAsset.cpp
+
+    include/UnityAsset/Environment/ObjectPointer.h
+
     include/UnityAsset/FileContainer/AssetBundle/AssetBundleBlock.h
     FileContainer/AssetBundle/AssetBundleBlock.cpp
 
@@ -28,6 +39,7 @@ add_library(UnityAsset STATIC
 
     include/UnityAsset/FileContainer/AssetBundle/AssetBundleFile.h
     FileContainer/AssetBundle/AssetBundleFile.cpp
+
 
     include/UnityAsset/SerializedAsset/FileIdentifier.h
     SerializedAsset/FileIdentifier.cpp
@@ -84,6 +96,7 @@ add_library(UnityAsset STATIC
     UnityTypeSerializer.cpp
 
     ${CMAKE_CURRENT_BINARY_DIR}/include/UnityAsset/UnityTypes.h
+    ${CMAKE_CURRENT_BINARY_DIR}/UnityTypes.cpp
 )
 
 if(NOT LibLZMA_FOUND)
@@ -133,7 +146,9 @@ if(NOT WIN32)
 endif()
 
 add_custom_command(
-    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/include/UnityAsset/UnityTypes.h
+    OUTPUT
+        ${CMAKE_CURRENT_BINARY_DIR}/include/UnityAsset/UnityTypes.h
+        ${CMAKE_CURRENT_BINARY_DIR}/UnityTypes.cpp
     COMMAND cmake -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/classdb ${CMAKE_CURRENT_BINARY_DIR}/include/UnityAsset
     COMMAND ${RUBY}
         ${CMAKE_CURRENT_SOURCE_DIR}/classdb/unpack_classdata_tpk.rb
@@ -143,6 +158,7 @@ add_custom_command(
         ${CMAKE_CURRENT_SOURCE_DIR}/classdb/make_cldb_code.rb
         ${CMAKE_CURRENT_BINARY_DIR}/classdb/U2019.4.9f1.cldb
         ${CMAKE_CURRENT_BINARY_DIR}/include/UnityAsset/UnityTypes.h
+        ${CMAKE_CURRENT_BINARY_DIR}/UnityTypes.cpp
     DEPENDS
         ${CMAKE_CURRENT_SOURCE_DIR}/classdb/classdata.tpk
         ${CMAKE_CURRENT_SOURCE_DIR}/classdb/unpack_classdata_tpk.rb

@@ -4,19 +4,26 @@
 #include <cstdint>
 
 #include <UnityAsset/Streams/Stream.h>
+#include <UnityAsset/Environment/Downcastable.h>
+
+#include <type_traits>
 
 namespace UnityAsset {
 
     class Stream;
+    template<typename T> class ObjectPointer;
+
+    class LoadedSerializedAsset;
 
     class UnityTypeSerializer {
     protected:
         enum class Direction {
             Read,
-            Write
+            Write,
+            Linking
         };
 
-        UnityTypeSerializer(Direction direction, Stream &stream);
+        UnityTypeSerializer(Direction direction, Stream &stream, LoadedSerializedAsset *asset = nullptr);
         ~UnityTypeSerializer();
 
     public:
@@ -33,34 +40,47 @@ namespace UnityAsset {
         }
 
         template<typename T>
-        static T deserializeObject(const Stream &stream, uint32_t flags) {
+        static void deserializeObject(const Stream &stream, uint32_t flags, T &result) {
             Stream input(stream);
 
             UnityTypeSerializer serializer(Direction::Read, input);
-
-            T result;
 
             serializer.serialize(result, flags);
 
             if(input.position() != stream.length()) {
                 throw std::runtime_error("extra data after the expected end of the object");
             }
-
-            return result;
         }
 
         template<typename T>
-        static Stream serializeObject(T &object, uint32_t flags) {
-            Stream output;
-
+        static void serializeObject(T &object, uint32_t flags, Stream &output) {
             UnityTypeSerializer serializer(Direction::Write, output);
 
             serializer.serialize(object, flags);
+        }
 
-            return output;
+        template<typename T>
+        static inline void linkObject(LoadedSerializedAsset *asset, T &object, uint32_t flags) {
+            Stream stream;
+            UnityTypeSerializer serializer(Direction::Linking, stream, asset);
+
+            serializer.serialize(object, flags);
+        }
+
+        template<typename RT, typename T>
+        inline auto bindPointer(T &pointer) const -> typename std::enable_if<std::is_base_of_v<ObjectPointer<RT>, T>>::type {
+            if(isLinking()) {
+                pointer.link(object_cast<RT>(resolvePointer(pointer.m_FileID, pointer.m_PathID)));
+            }
         }
 
     private:
+        Downcastable *resolvePointer(int32_t fileID, int64_t pathID) const;
+
+        inline bool isLinking() const {
+            return m_direction == Direction::Linking;
+        }
+
         template<typename T>
         inline auto serializeValue(T &element) -> typename std::enable_if<std::is_compound<T>::value>::type {
             element.serialize(*this);
@@ -77,13 +97,15 @@ namespace UnityAsset {
                     serializeValue(item);
                 }
             } else {
-                m_stream << static_cast<int32_t>(element.size());
+                if(!isLinking())
+                    m_stream << static_cast<int32_t>(element.size());
 
                 for(auto &item: element) {
                     serializeValue(item);
                 }
             }
-            m_stream.alignPosition(4);
+            if(!isLinking())
+                m_stream.alignPosition(4);
         }
 
         void serializeValue(std::vector<bool> &element);
@@ -107,13 +129,14 @@ namespace UnityAsset {
         auto serializeValue(T &element) -> typename std::enable_if<!std::is_compound<T>::value>::type {
             if(m_direction == Direction::Read) {
                 m_stream >> element;
-            } else {
+            } else if(m_direction == Direction::Write) {
                 m_stream << element;
             }
         }
 
         Direction m_direction;
         Stream &m_stream;
+        LoadedSerializedAsset *m_linkingAsset;
     };
 
 }
