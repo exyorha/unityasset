@@ -4,11 +4,13 @@
 #include <string>
 #include <memory>
 #include <unordered_map>
+#include <vector>
 
 namespace UnityAsset {
 
     class Stream;
     class Downcastable;
+    class LinkedEnvironment;
 
     class LoadedSerializedAsset {
     public:
@@ -26,14 +28,20 @@ namespace UnityAsset {
             return m_objects;
         }
 
-        void link();
+        void link(const LinkedEnvironment *environment);
 
         Downcastable *resolvePathID(int64_t pathID) const;
 
         Downcastable *resolvePointer(int32_t fileID, int64_t pathID) const;
 
     private:
+        struct AssetExternal {
+            std::string pathName;
+            LoadedSerializedAsset *asset;
+        };
+
         std::string m_name;
+        std::vector<AssetExternal> m_externals;
         std::unordered_map<int64_t, std::unique_ptr<Downcastable>> m_objects;
     };
 

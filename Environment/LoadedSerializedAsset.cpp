@@ -1,5 +1,6 @@
 #include <UnityAsset/Environment/LoadedSerializedAsset.h>
 #include <UnityAsset/Environment/Downcastable.h>
+#include <UnityAsset/Environment/LinkedEnvironment.h>
 
 #include <UnityAsset/SerializedAsset/SerializedAssetFile.h>
 
@@ -14,8 +15,11 @@ namespace UnityAsset {
 
         SerializedAssetFile file((Stream(dataStream)));
 
+        m_externals.reserve(file.m_Externals.size());
         for(const auto &external: file.m_Externals) {
-            printf("external: %s, type %u\n", external.pathName.c_str(), external.type);
+            auto &preparedExternal = m_externals.emplace_back();
+            preparedExternal.pathName = external.pathName;
+            preparedExternal.asset = nullptr;
         }
 
         m_objects.reserve(file.m_Objects.size());
@@ -27,7 +31,11 @@ namespace UnityAsset {
 
     LoadedSerializedAsset::~LoadedSerializedAsset() = default;
 
-    void LoadedSerializedAsset::link() {
+    void LoadedSerializedAsset::link(const LinkedEnvironment *environment) {
+        for(auto &external: m_externals) {
+            external.asset = environment->resolveExternal(external.pathName);
+        }
+
         for(const auto &object: m_objects) {
             if(object.second) {
                 object.second->link(this);
@@ -60,9 +68,15 @@ namespace UnityAsset {
         if(fileID == 0) {
             return resolvePathID(pathID);
         } else {
-            fprintf(stderr, "LoadedSerializedAsset::resolvePointer: need to resolve a pointer to a different asset: file ID %d, path ID %" PRId64 "\n",
-                    fileID, pathID);
-            return nullptr;
+            const auto &external = m_externals.at(fileID - 1);
+            if(external.asset == nullptr) {
+
+                fprintf(stderr, "LoadedSerializedAsset::resolvePointer: pointer to an external: file ID %d ('%s'), path ID %" PRId64 ": the corresponding asset was not found or wasn't loaded\n",
+                        fileID, external.pathName.c_str(), pathID);
+                return nullptr;
+            }
+
+            return external.asset->resolvePathID(pathID);
         }
     }
 }

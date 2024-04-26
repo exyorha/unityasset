@@ -39,7 +39,29 @@ namespace UnityAsset {
 
     void LinkedEnvironment::link() {
         for(auto &asset: m_assets) {
-            asset->link();
+            asset->link(this);
         }
     }
+
+    std::string_view LinkedEnvironment::getAssetBasename(const std::string_view &assetName) {
+        auto pos = assetName.find_last_of(":/");
+        if(pos == std::string_view::npos) {
+            return assetName;
+        } else {
+            return assetName.substr(pos + 1);
+        }
+    }
+
+    LoadedSerializedAsset *LinkedEnvironment::resolveExternal(const std::string_view &assetName) const {
+        std::string_view basename = getAssetBasename(assetName);
+
+        for(const auto &asset: m_assets) {
+            if(getAssetBasename(asset->name()) == basename) {
+                return asset.get();
+            }
+        }
+
+        return nullptr;
+    }
+
 }

@@ -31,7 +31,11 @@ namespace UnityAsset {
 
         void link();
 
+        LoadedSerializedAsset *resolveExternal(const std::string_view &assetName) const;
+
     private:
+        static std::string_view getAssetBasename(const std::string_view &assetName);
+
         std::vector<std::unique_ptr<LoadedSerializedAsset>> m_assets;
     };
 }
