@@ -46,6 +46,9 @@ namespace UnityAsset {
             case RGBAFloat:
                 return TextureFormatClassification(TextureEncodingClass::RGBA32F, 1, 1);
 
+            case TextureFormat::BC7:
+                return TextureFormatClassification(TextureEncodingClass::BC7, 4, 4);
+
             case ETC_RGB4:
                 return TextureFormatClassification(TextureEncodingClass::ETC1, 4, 4);
 
