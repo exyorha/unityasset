@@ -40,7 +40,6 @@ add_library(UnityAsset STATIC
     include/UnityAsset/FileContainer/AssetBundle/AssetBundleFile.h
     FileContainer/AssetBundle/AssetBundleFile.cpp
 
-
     include/UnityAsset/SerializedAsset/FileIdentifier.h
     SerializedAsset/FileIdentifier.cpp
 
@@ -77,11 +76,21 @@ add_library(UnityAsset STATIC
     include/UnityAsset/Streams/StreamBackingBuffer.h
     Streams/StreamBackingBuffer.cpp
 
+    bcdec.cpp
+    bcdec.h
+
+    include/UnityAsset/ExtractedTextureImage.h
+    ExtractedTextureImage.cpp
+
     include/UnityAsset/FileDescriptor.h
     FileDescriptor.cpp
 
     include/UnityAsset/ShaderBlob.h
     ShaderBlob.cpp
+
+    stb_image_write.h
+    stb_image_write_config.cpp
+    stb_image_write_config.h
 
     include/UnityAsset/StreamedResourceManipulator.h
     StreamedResourceManipulator.cpp
