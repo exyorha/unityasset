@@ -23,3 +23,7 @@ unsigned char *stb_image_write_zlib_compress(unsigned char *data, int data_len, 
 
     return buffer;
 }
+
+uint32_t stb_image_write_crc32(const unsigned char *buffer, size_t len) {
+    return crc32_z(0, buffer, len);
+}
