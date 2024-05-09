@@ -3,6 +3,8 @@
 
 #include <memory>
 #include <vector>
+#include <unordered_map>
+#include <optional>
 
 namespace UnityAsset {
 
@@ -33,10 +35,13 @@ namespace UnityAsset {
 
         LoadedSerializedAsset *resolveExternal(const std::string_view &assetName) const;
 
+        std::optional<Stream> resolveStreamedDataFile(const std::string_view &fileName) const;
+
     private:
         static std::string_view getAssetBasename(const std::string_view &assetName);
 
         std::vector<std::unique_ptr<LoadedSerializedAsset>> m_assets;
+        std::unordered_map<std::string, Stream> m_resourceFiles;
     };
 }
 

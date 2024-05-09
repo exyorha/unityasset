@@ -17,6 +17,9 @@ add_library(UnityAsset STATIC
     include/UnityAsset/Environment/Downcastable.h
     Environment/Downcastable.cpp
 
+    include/UnityAsset/Environment/ExternalAssetData.h
+    Environment/ExternalAssetData.cpp
+
     include/UnityAsset/Environment/LinkedEnvironment.h
     Environment/LinkedEnvironment.cpp
 

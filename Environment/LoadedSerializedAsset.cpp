@@ -11,7 +11,7 @@
 namespace UnityAsset {
 
     LoadedSerializedAsset::LoadedSerializedAsset(const std::string_view &name, const Stream &dataStream) :
-        m_name(name) {
+        m_name(name), m_linkingWithEnvironment(nullptr) {
 
         SerializedAssetFile file((Stream(dataStream)));
 
@@ -32,6 +32,8 @@ namespace UnityAsset {
     LoadedSerializedAsset::~LoadedSerializedAsset() = default;
 
     void LoadedSerializedAsset::link(const LinkedEnvironment *environment) {
+        m_linkingWithEnvironment = environment;
+
         for(auto &external: m_externals) {
             external.asset = environment->resolveExternal(external.pathName);
         }
@@ -41,6 +43,8 @@ namespace UnityAsset {
                 object.second->link(this);
             }
         }
+
+        m_linkingWithEnvironment = nullptr;
     }
 
     Downcastable *LoadedSerializedAsset::resolvePathID(int64_t pathID) const {
@@ -79,4 +83,6 @@ namespace UnityAsset {
             return external.asset->resolvePathID(pathID);
         }
     }
+
+
 }

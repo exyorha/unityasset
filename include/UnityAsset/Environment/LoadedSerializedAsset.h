@@ -34,6 +34,10 @@ namespace UnityAsset {
 
         Downcastable *resolvePointer(int32_t fileID, int64_t pathID) const;
 
+        inline const LinkedEnvironment *linkingWithEnvironment() const {
+            return m_linkingWithEnvironment;
+        }
+
     private:
         struct AssetExternal {
             std::string pathName;
@@ -43,6 +47,7 @@ namespace UnityAsset {
         std::string m_name;
         std::vector<AssetExternal> m_externals;
         std::unordered_map<int64_t, std::unique_ptr<Downcastable>> m_objects;
+        const LinkedEnvironment *m_linkingWithEnvironment;
     };
 
 }

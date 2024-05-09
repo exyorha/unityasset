@@ -5,8 +5,10 @@
 
 #include <UnityAsset/Streams/Stream.h>
 #include <UnityAsset/Environment/Downcastable.h>
+#include <UnityAsset/Environment/ExternalAssetData.h>
 
 #include <type_traits>
+#include <optional>
 
 namespace UnityAsset {
 
@@ -74,8 +76,18 @@ namespace UnityAsset {
             }
         }
 
+        template<typename T>
+        inline auto bindExternalAssetData(T &reference) const ->
+            typename std::enable_if<std::is_base_of_v<ExternalAssetData, T>>::type {
+
+            if(isLinking()) {
+                reference.link(resolveExternalAssetData(reference.offset, reference.size, reference.path));
+            }
+        }
+
     private:
         Downcastable *resolvePointer(int32_t fileID, int64_t pathID) const;
+        std::optional<Stream> resolveExternalAssetData(uint32_t offset, uint32_t size, const std::string &path) const;
 
         inline bool isLinking() const {
             return m_direction == Direction::Linking;

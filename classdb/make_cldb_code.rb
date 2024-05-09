@@ -77,6 +77,7 @@ header.write <<EOF
 
 #include <UnityAsset/Environment/ObjectPointer.h>
 #include <UnityAsset/Environment/Downcastable.h>
+#include <UnityAsset/Environment/ExternalAssetData.h>
 
 namespace UnityAsset::UnityClasses {
 EOF
@@ -163,6 +164,8 @@ database.types.types.each do |type|
 
     if type.type_name == "PPtr"
         header.write " final : public ObjectPointer<T1>"
+    elsif type.type_name == "StreamingInfo"
+        header.write " final : public ExternalAssetData"
     end
 
     header.puts " {";
@@ -184,6 +187,10 @@ database.types.types.each do |type|
 
     if type.type_name == "PPtr"
         source.puts "      serializer.bindPointer<T1>(*this);"
+    end
+
+    if type.type_name == "StreamingInfo"
+        source.puts "      serializer.bindExternalAssetData(*this);"
     end
 
     source.puts "    }";

@@ -1,5 +1,6 @@
 #include <UnityAsset/UnityTypeSerializer.h>
 #include <UnityAsset/Environment/LoadedSerializedAsset.h>
+#include <UnityAsset/Environment/LinkedEnvironment.h>
 
 namespace UnityAsset {
 
@@ -29,6 +30,20 @@ namespace UnityAsset {
 
     Downcastable *UnityTypeSerializer::resolvePointer(int32_t fileID, int64_t pathID) const {
         return m_linkingAsset->resolvePointer(fileID, pathID);
+    }
+
+    std::optional<Stream> UnityTypeSerializer::resolveExternalAssetData(
+        uint32_t offset, uint32_t size, const std::string &path) const {
+
+        if(path.empty())
+            return std::nullopt;
+
+        const auto &file = m_linkingAsset->linkingWithEnvironment()->resolveStreamedDataFile(path);
+        if(!file.has_value()) {
+            throw std::runtime_error("unable to locate the streamed file " + path);
+        }
+
+        return file->createView(offset, size);
     }
 
     void UnityTypeSerializer::serializeValue(std::vector<bool> &element) {

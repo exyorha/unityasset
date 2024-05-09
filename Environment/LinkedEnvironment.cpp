@@ -16,21 +16,32 @@ namespace UnityAsset {
         const UnityClasses::AssetBundle *bundleObject = nullptr;
 
         for(const auto &entry: bundle.entries) {
-            if(entry.filename().ends_with(".resource") || entry.filename().ends_with(".resS"))
-                continue;
+            if(entry.filename().ends_with(".resource") || entry.filename().ends_with(".resS")) {
+                m_resourceFiles.emplace(getAssetBasename(entry.filename()), entry.data());
+            } else {
 
-            auto asset = addAsset(entry.filename(), entry.data());
-            if(!bundleObject) {
-                for(const auto &object: asset->objects()) {
-                    bundleObject = object_cast<UnityClasses::AssetBundle>(object.second.get());
-                    if(bundleObject) {
-                        break;
+                auto asset = addAsset(entry.filename(), entry.data());
+                if(!bundleObject) {
+                    for(const auto &object: asset->objects()) {
+                        bundleObject = object_cast<UnityClasses::AssetBundle>(object.second.get());
+                        if(bundleObject) {
+                            break;
+                        }
                     }
                 }
             }
         }
 
         return bundleObject;
+    }
+
+    std::optional<Stream> LinkedEnvironment::resolveStreamedDataFile(const std::string_view &fileName) const {
+        auto it = m_resourceFiles.find(std::string(getAssetBasename(fileName)));
+        if(it == m_resourceFiles.end()) {
+            return std::nullopt;
+        }
+
+        return it->second;
     }
 
     LoadedSerializedAsset *LinkedEnvironment::addAsset(const std::string_view &name, const UnityAsset::Stream &stream) {

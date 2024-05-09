@@ -215,7 +215,8 @@ class ClassDatabase
             elsif unification_name == 'map'
                 container_arguments = 2
                 array_container = true
-            elsif unification_name == 'PackedBitVector' || unification_name == 'Google'
+            elsif unification_name == 'PackedBitVector' || unification_name == 'Google' ||
+                    unification_name == "OffsetPtr"
                 # Each instance of PackedBitVector is its own type. It would be nicer to make that an inner type to the outer type,
                 # but that's a lot more work.
                 @muldef_type_count += 1
