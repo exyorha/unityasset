@@ -1,40 +1,21 @@
-#include <UnityAsset/Environment/Downcastable.h>
+#include <UnityAsset/Environment/ObjectFactory.h>
 
+#include <UnityAsset/SerializedAsset/Downcastable.h>
 #include <UnityAsset/SerializedAsset/SerializedType.h>
 #include <UnityAsset/UnityTypes.h>
 
 namespace UnityAsset {
-
-    Downcastable::Downcastable() = default;
-    Downcastable::~Downcastable() = default;
-
-    std::unique_ptr<Downcastable> Downcastable::loadObject(const UnityAsset::SerializedType &type, const Stream &data) {
-        if(type.m_ScriptTypeIndex >= 0 || type.m_ScriptID.has_value()) {
-            fprintf(stderr, "Downcastable::loadObject: object of type %d cannot be loaded because it has script data attached\n",
-                    type.classID);
-
-            return nullptr;
-        }
-
-        auto it = m_loaders.find(type.classID);
-        if(it == m_loaders.end()) {
-            fprintf(stderr, "Downcastable::loadObject: cannot deserialize an object of type %d\n",
-                    type.classID);
-            return nullptr;
-        }
-
-        return it->second(data);
-    }
+    using Loader = std::unique_ptr<Downcastable> (*)(const Stream &stream);
 
     template<typename T>
-    std::unique_ptr<Downcastable> Downcastable::deserialize(const Stream &stream) {
+    static std::unique_ptr<Downcastable> deserialize(const Stream &stream) {
         auto ptr = std::make_unique<T>();
         ptr->deserialize(stream);
 
         return ptr;
     }
 
-    std::unordered_map<int32_t, Downcastable::Loader> Downcastable::m_loaders{
+    static std::unordered_map<int32_t, Loader> m_loaders{
         { UnityClasses::GameObject::ClassID,               deserialize<UnityClasses::GameObject>     },
         { UnityClasses::Transform::ClassID,                deserialize<UnityClasses::Transform>      },
         { UnityClasses::Material::ClassID,                 deserialize<UnityClasses::Material>       },
@@ -63,5 +44,23 @@ namespace UnityAsset {
         { UnityClasses::LightProbes::ClassID,              deserialize<UnityClasses::LightProbes> },
         { UnityClasses::OcclusionCullingData::ClassID,     deserialize<UnityClasses::OcclusionCullingData> },
     };
+
+    std::unique_ptr<Downcastable> loadObject(const UnityAsset::SerializedType &type, const Stream &data) {
+        if(type.m_ScriptTypeIndex >= 0 || type.m_ScriptID.has_value()) {
+            fprintf(stderr, "Downcastable::loadObject: object of type %d cannot be loaded because it has script data attached\n",
+                    type.classID);
+
+            return nullptr;
+        }
+
+        auto it = m_loaders.find(type.classID);
+        if(it == m_loaders.end()) {
+            fprintf(stderr, "Downcastable::loadObject: cannot deserialize an object of type %d\n",
+                    type.classID);
+            return nullptr;
+        }
+
+        return it->second(data);
+    }
 
 }

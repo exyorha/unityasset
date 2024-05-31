@@ -29,9 +29,9 @@ class ClassDatabaseFileHeader < BinData::Record
     uint8 :compression_type, onlyif: proc { file_version >= 2 }, assert: 0
     uint32 :compressed_size, onlyif: proc { file_version >= 2 }
     uint32 :uncompressed_size, onlyif: proc { file_version >= 2 }
-    uint8 :unity_version_count
+    uint8 :unity_version_count, value: proc { unity_versions.size }
     array :unity_versions, initial_length: :unity_version_count do
-        uint8 :version_length
+        uint8 :version_length, value: proc { version.size }
         string :version, read_length: :version_length
     end
     uint32 :string_table_length
@@ -59,6 +59,23 @@ class StringTableString < BinData::Primitive
         end
     end
 
+    def set(v)
+        string = v.to_str
+        terminated = "#{string}\x00"
+        startpos = self.class.string_table.index(terminated)
+        if startpos.nil?
+            startpos = self.class.string_table.size
+            self.class.string_table << terminated
+        end
+
+        self.offset = startpos
+
+        @string = string
+
+        string
+    end
+
+
 end
 
 class ClassDatabaseClass < BinData::Record
@@ -68,7 +85,7 @@ class ClassDatabaseClass < BinData::Record
     uint32 :class_id
     int32 :base_class_id
     string_table_string :class_name
-    uint32 :field_count
+    uint32 :field_count, value: proc { class_fields.size }
     array :class_fields, initial_length: :field_count do
         string_table_string :type_name
         string_table_string :field_name
@@ -83,7 +100,7 @@ end
 class ClassDatabaseBody < BinData::Record
     endian :little
 
-    uint32 :class_count
+    uint32 :class_count, value: proc { classes.size }
     array :classes, initial_length: :class_count, type: ClassDatabaseClass
 end
 

@@ -76,8 +76,8 @@ header.write <<EOF
 #include <array>
 
 #include <UnityAsset/Environment/ObjectPointer.h>
-#include <UnityAsset/Environment/Downcastable.h>
-#include <UnityAsset/Environment/ExternalAssetData.h>
+#include <UnityAsset/SerializedAsset/Downcastable.h>
+#include <UnityAsset/SerializedAsset/ExternalAssetData.h>
 
 namespace UnityAsset::UnityClasses {
 EOF
@@ -95,7 +95,7 @@ header.write <<EOF
 
 namespace UnityAsset {
     class UnityTypeSerializer;
-    class LoadedSerializedAsset;
+    class AssetLinker;
 }
 
 namespace UnityAsset::UnityTypes {
@@ -299,8 +299,8 @@ EOF
         source.puts "  }"
 
 
-        header.puts "void link(LoadedSerializedAsset *asset) override;"
-        source.puts "void UnityClasses::#{name}::link(LoadedSerializedAsset *asset) {"
+        header.puts "void link(AssetLinker *asset) override;"
+        source.puts "void UnityClasses::#{name}::link(AssetLinker *asset) {"
         if ref.nil?
             source.puts "    (void)asset;"
         else

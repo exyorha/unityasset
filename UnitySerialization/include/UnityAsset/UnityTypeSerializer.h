@@ -4,8 +4,8 @@
 #include <cstdint>
 
 #include <UnityAsset/Streams/Stream.h>
-#include <UnityAsset/Environment/Downcastable.h>
-#include <UnityAsset/Environment/ExternalAssetData.h>
+#include <UnityAsset/SerializedAsset/Downcastable.h>
+#include <UnityAsset/SerializedAsset/ExternalAssetData.h>
 
 #include <type_traits>
 #include <optional>
@@ -15,7 +15,7 @@ namespace UnityAsset {
     class Stream;
     template<typename T> class ObjectPointer;
 
-    class LoadedSerializedAsset;
+    class AssetLinker;
 
     class UnityTypeSerializer {
     protected:
@@ -25,7 +25,7 @@ namespace UnityAsset {
             Linking
         };
 
-        UnityTypeSerializer(Direction direction, Stream &stream, LoadedSerializedAsset *asset = nullptr);
+        UnityTypeSerializer(Direction direction, Stream &stream, AssetLinker *asset = nullptr);
         ~UnityTypeSerializer();
 
     public:
@@ -62,7 +62,7 @@ namespace UnityAsset {
         }
 
         template<typename T>
-        static inline void linkObject(LoadedSerializedAsset *asset, T &object, uint32_t flags) {
+        static inline void linkObject(AssetLinker *asset, T &object, uint32_t flags) {
             Stream stream;
             UnityTypeSerializer serializer(Direction::Linking, stream, asset);
 
@@ -148,7 +148,7 @@ namespace UnityAsset {
 
         Direction m_direction;
         Stream &m_stream;
-        LoadedSerializedAsset *m_linkingAsset;
+        AssetLinker *m_linkingAsset;
     };
 
 }

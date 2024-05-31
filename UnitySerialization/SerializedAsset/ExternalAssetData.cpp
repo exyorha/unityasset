@@ -1,4 +1,4 @@
-#include <UnityAsset/Environment/ExternalAssetData.h>
+#include <UnityAsset/SerializedAsset/ExternalAssetData.h>
 
 namespace UnityAsset {
 
