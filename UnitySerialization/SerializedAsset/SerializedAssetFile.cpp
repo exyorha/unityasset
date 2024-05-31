@@ -188,7 +188,7 @@ namespace UnityAsset {
         if(metadataStream.length() > std::numeric_limits<int32_t>::max())
             throw std::runtime_error("the metadata stream is too long to represent");
 
-        size_t fileSizeOffset;
+        size_t fileSizeOffset = 0;
 
         if(assetVersion >= 22) {
             /*
@@ -204,7 +204,7 @@ namespace UnityAsset {
 
         output << assetVersion;
 
-        size_t dataStartOffset;
+        size_t dataStartOffset = 0;
         if(assetVersion >= 22) {
             /*
              * Dummy 32-bit data start offset that's always zero
