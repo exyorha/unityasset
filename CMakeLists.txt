@@ -15,3 +15,4 @@ find_program(RUBY ruby REQUIRED)
 
 add_subdirectory(UnitySerialization)
 add_subdirectory(UnityContent)
+add_subdirectory(ExtractUnityTypeData)
