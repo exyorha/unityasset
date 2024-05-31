@@ -4,13 +4,23 @@
 
 namespace UnityAsset {
 
-    SerializedObject::SerializedObject(Stream &input, Stream &objectDataArea) {
+    SerializedObject::SerializedObject(Stream &input, Stream &objectDataArea, bool offset64) {
 
         input.alignPosition(4);
         input >> m_PathID;
 
-        uint32_t byteStart, byteSize;
-        input >> byteStart >> byteSize >> typeIndex;
+        uint64_t byteStart;
+        uint32_t byteSize;
+
+        if(offset64) {
+            input >> byteStart;
+        } else {
+            uint32_t byteStartNarrow;
+            input >> byteStartNarrow;
+            byteStart = byteStartNarrow;
+        }
+
+        input >> byteSize >> typeIndex;
 
         objectData = objectDataArea.createView(byteStart, byteSize);
     }

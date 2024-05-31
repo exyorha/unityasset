@@ -11,7 +11,7 @@ namespace UnityAsset {
 
     class SerializedObject {
     public:
-        explicit SerializedObject(Stream &input, Stream &objectDataArea);
+        explicit SerializedObject(Stream &input, Stream &objectDataArea, bool offset64);
         ~SerializedObject();
 
         SerializedObject(const SerializedObject &other) = delete;
