@@ -60,16 +60,68 @@ function(unity_content_generate_library target_name unity_version)
             ${bindir}/classdb
         COMMAND ${RUBY}
             ${UnityAsset_SOURCE_DIR}/classdb/make_cldb_code.rb
-            ${bindir}/classdb/U2019.4.9f1.cldb
-            ${bindir}/include/UnityAsset/UnityTypes.h
-            ${bindir}/UnityTypes.cpp
+            --cldb ${bindir}/classdb/${unity_version}.cldb
+            --header ${bindir}/include/UnityAsset/UnityTypes.h
+            --source ${bindir}/UnityTypes.cpp
         DEPENDS
             ${UnityAsset_SOURCE_DIR}/classdb/classdata.tpk
             ${UnityAsset_SOURCE_DIR}/classdb/unpack_classdata_tpk.rb
             ${UnityAsset_SOURCE_DIR}/classdb/class_database_types.rb
             ${UnityAsset_SOURCE_DIR}/classdb/make_cldb_code.rb
+            ${UnityAsset_SOURCE_DIR}/classdb/unity_dictionary.bin
         VERBATIM
     )
 
 endfunction()
 
+function(unity_content_generate_type_parsers)
+    cmake_parse_arguments(TYPES "" "TARGET" "TYPES" ${ARGN})
+
+    if(NOT TYPES_TARGET)
+        message(FATAL_ERROR "unity_content_generate_type_parsers: TARGET must be specified")
+    endif()
+
+    set(bindir "${CMAKE_CURRENT_BINARY_DIR}/generated_${TYPES_TARGET}")
+
+    target_sources(${TYPES_TARGET} PRIVATE
+        ${bindir}/include/UnityAsset/UnityTypes.h
+        ${bindir}/UnityTypes.cpp
+    )
+
+    target_include_directories(${TYPES_TARGET} PRIVATE ${bindir}/include)
+
+    set(args)
+    set(depends)
+
+    foreach(typefile IN LISTS TYPES_TYPES)
+        file(REAL_PATH "${typefile}" absolute_typefile BASE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}")
+
+        list(APPEND args "--type")
+        list(APPEND args "${absolute_typefile}")
+        list(APPEND depends "${absolute_typefile}")
+    endforeach()
+
+    add_custom_command(
+        OUTPUT
+            ${bindir}/include/UnityAsset/UnityTypes.h
+            ${bindir}/UnityTypes.cpp
+        COMMAND cmake -E make_directory ${bindir}/include/UnityAsset
+        COMMAND ${RUBY}
+            ${UnityAsset_SOURCE_DIR}/classdb/make_cldb_code.rb
+            --header ${bindir}/include/UnityAsset/UnityTypes.h
+            --source ${bindir}/UnityTypes.cpp
+            --reduced
+            ${args}
+        DEPENDS
+            ${UnityAsset_SOURCE_DIR}/classdb/classdata.tpk
+            ${UnityAsset_SOURCE_DIR}/classdb/unpack_classdata_tpk.rb
+            ${UnityAsset_SOURCE_DIR}/classdb/class_database_types.rb
+            ${UnityAsset_SOURCE_DIR}/classdb/make_cldb_code.rb
+            ${UnityAsset_SOURCE_DIR}/classdb/unity_dictionary.bin
+            ${depends}
+        VERBATIM
+    )
+
+
+
+endfunction()
