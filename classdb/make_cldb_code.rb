@@ -32,6 +32,13 @@ BUILTIN_TYPES = {
     "TypelessData" => "UnityTypelessData"
 }
 
+ZEROINIT_TYPES = Set[
+    "int8_t", "uint8_t", "bool",
+    "int16_t", "uint16_t",
+    "int32_t", "uint32_t", "float",
+    "int64_t", "uint64_t", "double"
+]
+
 output_header = nil
 output_source = nil
 
@@ -250,7 +257,14 @@ database.types.types.each do |type|
     header.puts " {";
 
     type.fields.each do |field|
-        header.puts "    #{compose_type_ref field, reduced} #{field.field_name};"
+        typeref = compose_type_ref field, reduced
+        header.write "    #{typeref} #{field.field_name}"
+
+        if ZEROINIT_TYPES.include? typeref
+            header.write " = 0"
+        end
+
+        header.puts ";"
     end
 
 

@@ -11,6 +11,7 @@ namespace UnityAsset {
 
     class SerializedObject {
     public:
+        SerializedObject();
         explicit SerializedObject(Stream &input, Stream &objectDataArea, bool offset64);
         ~SerializedObject();
 

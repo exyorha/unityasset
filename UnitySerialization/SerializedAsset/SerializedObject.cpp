@@ -4,6 +4,10 @@
 
 namespace UnityAsset {
 
+    SerializedObject::SerializedObject() : m_PathID(0), typeIndex(0) {
+
+    }
+
     SerializedObject::SerializedObject(Stream &input, Stream &objectDataArea, bool offset64) {
 
         input.alignPosition(4);
