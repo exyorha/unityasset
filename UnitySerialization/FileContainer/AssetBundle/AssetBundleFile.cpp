@@ -253,8 +253,6 @@ namespace UnityAsset {
             if(dataCompression == UnityCompressionType::None) {
                 compressedBody = std::move(uncompressedDataBuffer);
                 actualCompressionType = UnityCompressionType::None;
-
-                compressedBody = std::move(uncompressedDataBuffer);
             } else {
                 compressedBody.resize(uncompressedLength);
 
