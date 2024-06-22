@@ -154,7 +154,10 @@ if(NOT MSVC)
 endif()
 
 if(NOT WIN32)
-    target_link_libraries(UnityAsset PRIVATE tbb)
+    find_library(TBB tbb)
+    if(TBB)
+        target_link_libraries(UnityAsset PRIVATE ${TBB})
+    endif()
 endif()
 
 add_custom_command(
