@@ -22,6 +22,12 @@ function(unity_content_generate_library target_name unity_version)
         ${UNITY_CONTENT_SOURCE_DIR}/include/UnityAsset/ExtractedTextureImage.h
         ${UNITY_CONTENT_SOURCE_DIR}/ExtractedTextureImage.cpp
 
+        ${UNITY_CONTENT_SOURCE_DIR}/include/UnityAsset/HalfFloat.h
+        ${UNITY_CONTENT_SOURCE_DIR}/HalfFloat.cpp
+
+        ${UNITY_CONTENT_SOURCE_DIR}/include/UnityAsset/MeshVertexLayout.h
+        ${UNITY_CONTENT_SOURCE_DIR}/MeshVertexLayout.cpp
+
         ${UNITY_CONTENT_SOURCE_DIR}/include/UnityAsset/ShaderBlob.h
         ${UNITY_CONTENT_SOURCE_DIR}/ShaderBlob.cpp
 
