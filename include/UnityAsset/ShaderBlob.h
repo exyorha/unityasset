@@ -18,6 +18,10 @@ namespace UnityAsset {
         ShaderBlob(const ShaderBlob &other) = delete;
         ShaderBlob &operator =(const ShaderBlob &other) = delete;
 
+        ShaderBlob(ShaderBlob &&other) noexcept;
+        ShaderBlob &operator =(ShaderBlob &&other) noexcept;
+
+
         void serialize(
             std::vector<uint32_t> &compressedLengths,
             std::vector<uint32_t> &decompressedLengths,

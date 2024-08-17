@@ -64,6 +64,10 @@ namespace UnityAsset {
 
     ShaderBlob::~ShaderBlob() = default;
 
+    ShaderBlob::ShaderBlob(ShaderBlob &&other) noexcept = default;
+
+    ShaderBlob &ShaderBlob::operator =(ShaderBlob &&other) noexcept = default;
+
     void ShaderBlob::serialize(
             std::vector<uint32_t> &compressedLengths,
             std::vector<uint32_t> &decompressedLengths,
