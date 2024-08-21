@@ -8,7 +8,14 @@ if(NOT TARGET lz4)
     add_library(lz4 ALIAS PkgConfig::LZ4)
 endif()
 
-find_package(LibLZMA)
+if(NOT MINGW)
+    find_package(LibLZMA)
+endif()
+
+if(MINGW)
+    set(ZLIB_USE_STATIC_LIBS ON)
+endif()
+
 find_package(ZLIB REQUIRED)
 
 find_program(RUBY ruby REQUIRED)
