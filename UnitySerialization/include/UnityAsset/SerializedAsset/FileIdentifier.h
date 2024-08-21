@@ -11,6 +11,7 @@ namespace UnityAsset {
 
     class FileIdentifier {
     public:
+        FileIdentifier();
         explicit FileIdentifier(Stream &stream);
         ~FileIdentifier();
 

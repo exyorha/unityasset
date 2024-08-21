@@ -1,8 +1,9 @@
 #include <UnityAsset/Environment/LoadedSerializedAsset.h>
-#include <UnityAsset/Environment/Downcastable.h>
+#include <UnityAsset/Environment/ObjectFactory.h>
 #include <UnityAsset/Environment/LinkedEnvironment.h>
 
 #include <UnityAsset/SerializedAsset/SerializedAssetFile.h>
+#include <UnityAsset/SerializedAsset/Downcastable.h>
 
 #include <UnityAsset/Streams/Stream.h>
 
@@ -25,7 +26,7 @@ namespace UnityAsset {
         m_objects.reserve(file.m_Objects.size());
 
         for(const auto &object: file.m_Objects) {
-            m_objects.emplace(object.m_PathID, Downcastable::loadObject(file.m_Types.at(object.typeIndex), object.objectData));
+            m_objects.emplace(object.m_PathID, loadObject(file.m_Types.at(object.typeIndex), object.objectData));
         }
     }
 
@@ -84,5 +85,8 @@ namespace UnityAsset {
         }
     }
 
+    std::optional<Stream> LoadedSerializedAsset::resolveStreamedDataFile(const std::string_view &fileName) const {
+        return m_linkingWithEnvironment->resolveStreamedDataFile(fileName);
+    }
 
 }

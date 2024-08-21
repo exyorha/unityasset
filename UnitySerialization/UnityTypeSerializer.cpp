@@ -1,10 +1,10 @@
 #include <UnityAsset/UnityTypeSerializer.h>
-#include <UnityAsset/Environment/LoadedSerializedAsset.h>
-#include <UnityAsset/Environment/LinkedEnvironment.h>
+
+#include <UnityAsset/SerializedAsset/AssetLinker.h>
 
 namespace UnityAsset {
 
-    UnityTypeSerializer::UnityTypeSerializer(Direction direction, Stream &stream, LoadedSerializedAsset *asset) : m_direction(direction), m_stream(stream),
+    UnityTypeSerializer::UnityTypeSerializer(Direction direction, Stream &stream, AssetLinker *asset) : m_direction(direction), m_stream(stream),
         m_linkingAsset(asset) {
 
     }
@@ -38,7 +38,7 @@ namespace UnityAsset {
         if(path.empty())
             return std::nullopt;
 
-        const auto &file = m_linkingAsset->linkingWithEnvironment()->resolveStreamedDataFile(path);
+        const auto &file = m_linkingAsset->resolveStreamedDataFile(path);
         if(!file.has_value()) {
             throw std::runtime_error("unable to locate the streamed file " + path);
         }

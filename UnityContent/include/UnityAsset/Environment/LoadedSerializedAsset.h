@@ -6,13 +6,15 @@
 #include <unordered_map>
 #include <vector>
 
+#include <UnityAsset/SerializedAsset/AssetLinker.h>
+
 namespace UnityAsset {
 
     class Stream;
     class Downcastable;
     class LinkedEnvironment;
 
-    class LoadedSerializedAsset {
+    class LoadedSerializedAsset final : public AssetLinker {
     public:
         LoadedSerializedAsset(const std::string_view &name, const Stream &dataStream);
         ~LoadedSerializedAsset();
@@ -32,11 +34,8 @@ namespace UnityAsset {
 
         Downcastable *resolvePathID(int64_t pathID) const;
 
-        Downcastable *resolvePointer(int32_t fileID, int64_t pathID) const;
-
-        inline const LinkedEnvironment *linkingWithEnvironment() const {
-            return m_linkingWithEnvironment;
-        }
+        Downcastable *resolvePointer(int32_t fileID, int64_t pathID) const override;
+        std::optional<Stream> resolveStreamedDataFile(const std::string_view &fileName) const override;
 
     private:
         struct AssetExternal {

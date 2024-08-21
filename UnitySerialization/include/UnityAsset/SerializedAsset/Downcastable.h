@@ -1,5 +1,5 @@
-#ifndef UNITY_ASSET_ENVIRONMENT_DOWNCASTABLE_H
-#define UNITY_ASSET_ENVIRONMENT_DOWNCASTABLE_H
+#ifndef UNITY_ASSET_SERIALIZED_ASSET_DOWNCASTABLE_H
+#define UNITY_ASSET_SERIALIZED_ASSET_DOWNCASTABLE_H
 
 #include <memory>
 #include <unordered_map>
@@ -9,7 +9,7 @@ namespace UnityAsset {
     class Stream;
 
     class SerializedType;
-    class LoadedSerializedAsset;
+    class AssetLinker;
 
     class Downcastable {
     protected:
@@ -23,9 +23,7 @@ namespace UnityAsset {
 
         virtual int32_t classId() const = 0;
         virtual bool canBeCastTo(int32_t classId) const = 0;
-        virtual void link(LoadedSerializedAsset *asset) = 0;
-
-        static std::unique_ptr<Downcastable> loadObject(const UnityAsset::SerializedType &type, const Stream &data);
+        virtual void link(AssetLinker *asset) = 0;
 
         template<typename T>
         inline bool isType() const {
@@ -36,13 +34,6 @@ namespace UnityAsset {
         inline bool isDerivedFrom() const {
             return canBeCastTo(T::ClassID);
         }
-
-    private:
-        template<typename T>
-        static std::unique_ptr<Downcastable> deserialize(const Stream &stream);
-
-        using Loader = std::unique_ptr<Downcastable> (*)(const Stream &stream);
-        static std::unordered_map<int32_t, Loader> m_loaders;
     };
 
     template<typename T>

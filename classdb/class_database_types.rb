@@ -29,9 +29,9 @@ class ClassDatabaseFileHeader < BinData::Record
     uint8 :compression_type, onlyif: proc { file_version >= 2 }, assert: 0
     uint32 :compressed_size, onlyif: proc { file_version >= 2 }
     uint32 :uncompressed_size, onlyif: proc { file_version >= 2 }
-    uint8 :unity_version_count
+    uint8 :unity_version_count, value: proc { unity_versions.size }
     array :unity_versions, initial_length: :unity_version_count do
-        uint8 :version_length
+        uint8 :version_length, value: proc { version.size }
         string :version, read_length: :version_length
     end
     uint32 :string_table_length
@@ -59,6 +59,23 @@ class StringTableString < BinData::Primitive
         end
     end
 
+    def set(v)
+        string = v.to_str
+        terminated = "#{string}\x00"
+        startpos = self.class.string_table.index(terminated)
+        if startpos.nil?
+            startpos = self.class.string_table.size
+            self.class.string_table << terminated
+        end
+
+        self.offset = startpos
+
+        @string = string
+
+        string
+    end
+
+
 end
 
 class ClassDatabaseClass < BinData::Record
@@ -68,7 +85,7 @@ class ClassDatabaseClass < BinData::Record
     uint32 :class_id
     int32 :base_class_id
     string_table_string :class_name
-    uint32 :field_count
+    uint32 :field_count, value: proc { class_fields.size }
     array :class_fields, initial_length: :field_count do
         string_table_string :type_name
         string_table_string :field_name
@@ -83,7 +100,7 @@ end
 class ClassDatabaseBody < BinData::Record
     endian :little
 
-    uint32 :class_count
+    uint32 :class_count, value: proc { classes.size }
     array :classes, initial_length: :class_count, type: ClassDatabaseClass
 end
 
@@ -438,4 +455,126 @@ class ClassDatabase
 
         class_definition
     end
+end
+
+
+class UnityTypeTreeNode < BinData::Record
+    endian :little
+
+    uint16 :m_Version
+    uint8 :m_Level
+    uint8 :m_TypeFlags
+    uint32 :m_TypeStrOffset
+    uint32 :m_NameStrOffset
+    int32 :m_ByteSize
+    int32 :m_Index
+    int32 :m_MetaFlag
+    uint64 :m_RefTypeHash
+end
+
+class UnityTypeTree < BinData::Record
+    endian :little
+
+    int32 :numberOfNodes
+    int32 :stringBufferSize
+
+    array :m_Nodes, type: UnityTypeTreeNode, initial_length: :numberOfNodes
+    string :m_StringBuffer, read_length: :stringBufferSize
+
+    int32 :numberOfDependencies
+    array :m_TypeDependencies, type: :int32, initial_length: :numberOfDependencies
+
+    def pooled_string(idx)
+        source =
+            if (idx & 0x80000000) == 0
+                source = m_StringBuffer.value
+            else
+                source = DICTIONARY
+            end
+
+        idx &= 0x7FFFFFFF
+
+        endpos = source.index("\x00".b, idx)
+        if endpos.nil?
+            raise "unterminated string"
+        end
+
+        source[idx...endpos]
+    end
+
+    private
+
+    DICTIONARY = File.binread(File.expand_path("../unity_dictionary.bin", __FILE__))
+end
+
+class UnityTypeInfo < BinData::Record
+    endian :little
+
+    int32 :class_id
+    uint8 :m_StrippedType, assert: 0
+    int16 :m_ScriptTypeIndex
+    string :m_ScriptID, length: 16, onlyif: proc { class_id == 114 } # only for MonoBehavior
+    string :m_OldTypeHash, length: 16
+
+    unity_type_tree :m_Type
+
+end
+
+def make_cldb_from_unity_types(out, types)
+    string_table = "\x00"
+
+    StringTableString.string_table = string_table
+
+    header = ClassDatabaseFileHeader.new
+    header.signature = "cldb"
+    header.file_version = 0
+
+    header.unity_versions.push({ version: "detached" })
+
+    # Will be rewritten once the string pool location is finalized
+    header.write out
+
+    body = ClassDatabaseBody.new
+
+    types.each do |type|
+        body.classes.push({})
+        classdef = body.classes[-1]
+        classdef.class_id = type.class_id
+        classdef.base_class_id = -1
+
+        type.m_Type.m_Nodes.each do |node|
+            classdef.class_fields.push({})
+            field = classdef.class_fields[-1]
+
+            field.type_name = type.m_Type.pooled_string(node.m_TypeStrOffset)
+            field.field_name = type.m_Type.pooled_string(node.m_NameStrOffset)
+            field.depth = node.m_Level
+            field.is_array = node.m_TypeFlags
+            field.field_size = node.m_ByteSize
+            field.version = node.m_Version
+            field.flags2 = node.m_MetaFlag
+
+            if field.depth == 0
+                classdef.class_name = field.type_name
+            end
+        end
+    end
+
+    body.write out
+
+    header.string_table_offset = out.pos
+    header.string_table_length = string_table.size
+
+    out.write string_table
+
+    out.seek 0
+    header.write out
+
+    out.seek 0, IO::SEEK_END
+
+    nil
+
+ensure
+    StringTableString.string_table = nil
+
 end

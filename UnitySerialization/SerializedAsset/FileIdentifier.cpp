@@ -2,7 +2,13 @@
 
 #include <UnityAsset/Streams/Stream.h>
 
+#include <cstring>
+
 namespace UnityAsset {
+
+    FileIdentifier::FileIdentifier() : type(0) {
+        memset(guid.data(), 0, guid.size());
+    }
 
     FileIdentifier::FileIdentifier(Stream &stream) {
         (void)stream.readNullTerminatedString();

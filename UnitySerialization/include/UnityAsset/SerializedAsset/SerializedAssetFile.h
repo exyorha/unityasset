@@ -33,8 +33,9 @@ namespace UnityAsset {
 
         void serialize(Stream &output) const;
 
+        uint32_t assetVersion;
         std::string unityVersion;
-        uint32_t platform = 0;
+        int32_t platform = 0;
         bool typeTreeEnabled = false;
         std::vector<SerializedType> m_Types;
         std::vector<SerializedObject> m_Objects;
@@ -42,9 +43,6 @@ namespace UnityAsset {
         std::vector<FileIdentifier> m_Externals;
         std::vector<SerializedType> m_RefTypes;
         std::string userInformation;
-
-    private:
-        static constexpr uint32_t AssetVersion = 21;
     };
 }
 
