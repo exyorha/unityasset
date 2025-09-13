@@ -107,6 +107,11 @@ namespace UnityAsset {
         m_position += size;
     }
 
+    void Stream::truncate() {
+        m_length = m_position;
+        m_backingBuffer->resize(m_offset + m_length);
+    }
+
     void Stream::setPosition(size_t position) {
         m_position = position;
 

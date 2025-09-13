@@ -138,6 +138,8 @@ namespace UnityAsset {
 
         void alignPosition(size_t alignment);
 
+        void truncate();
+
     private:
         inline unsigned char *writableData() {
             return const_cast<unsigned char *>(data());
