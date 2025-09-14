@@ -94,7 +94,7 @@ function(unity_content_generate_type_parsers)
         ${bindir}/UnityTypes.cpp
     )
 
-    target_include_directories(${TYPES_TARGET} PRIVATE ${bindir}/include)
+    target_include_directories(${TYPES_TARGET} PUBLIC ${bindir}/include)
 
     set(args)
     set(depends)
