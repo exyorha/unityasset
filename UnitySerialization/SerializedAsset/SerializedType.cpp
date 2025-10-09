@@ -1,7 +1,7 @@
 #include <UnityAsset/SerializedAsset/SerializedType.h>
 #include <UnityAsset/Streams/Stream.h>
 
-#include <cstdio>
+#include <stdexcept>
 
 namespace UnityAsset {
 

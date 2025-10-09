@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <optional>
+#include <string>
 
 #include <UnityAsset/SerializedAsset/TypeTreeNode.h>
 #include <UnityAsset/Streams/Stream.h>

@@ -15,6 +15,8 @@
 #endif
 
 #include <array>
+#include <stdexcept>
+#include <string>
 
 namespace UnityAsset {
 

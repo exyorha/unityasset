@@ -2,6 +2,8 @@
 #include <UnityAsset/Streams/InMemoryStreamBackingBuffer.h>
 
 #include <cstring>
+#include <string>
+#include <stdexcept>
 
 namespace UnityAsset {
 

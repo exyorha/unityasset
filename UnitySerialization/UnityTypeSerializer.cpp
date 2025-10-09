@@ -2,6 +2,8 @@
 
 #include <UnityAsset/SerializedAsset/AssetLinker.h>
 
+#include <stdexcept>
+
 namespace UnityAsset {
 
     UnityTypeSerializer::UnityTypeSerializer(Direction direction, Stream &stream, AssetLinker *asset) : m_direction(direction), m_stream(stream),

@@ -9,6 +9,8 @@
 
 #include <type_traits>
 #include <optional>
+#include <string>
+#include <stdexcept>
 
 namespace UnityAsset {
 

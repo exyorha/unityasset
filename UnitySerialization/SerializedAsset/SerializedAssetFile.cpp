@@ -3,6 +3,7 @@
 #include <UnityAsset/Streams/Stream.h>
 
 #include <limits>
+#include <stdexcept>
 
 namespace UnityAsset {
 

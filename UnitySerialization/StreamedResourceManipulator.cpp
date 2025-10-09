@@ -1,6 +1,8 @@
-#include "UnityAsset/Streams/InMemoryStreamBackingBuffer.h"
 #include <UnityAsset/StreamedResourceManipulator.h>
+#include <UnityAsset/Streams/InMemoryStreamBackingBuffer.h>
 #include <UnityAsset/FileContainer/AssetBundle/AssetBundleEntry.h>
+
+#include <stdexcept>
 
 namespace UnityAsset {
     StreamedResourceManipulator::StreamedResourceManipulator(AssetBundleEntry &backingFile) : m_backingFile(backingFile) {
