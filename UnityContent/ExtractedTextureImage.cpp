@@ -5,6 +5,7 @@
 #include "bcdec.h"
 #include "stb_image_write.h"
 #include "stb_image_write_config.h"
+#include "texcompress_astc.h"
 
 namespace UnityAsset {
 
@@ -32,6 +33,27 @@ namespace UnityAsset {
             case UnityAsset::TextureEncodingClass::BC7:
                 decompressViaBCDecWorker(textureData, image, bcdec_bc7, BCDEC_BC7_BLOCK_SIZE);
                 break;
+
+            case UnityAsset::TextureEncodingClass::ASTC_LDR:
+            {
+
+                auto source = textureData + image.offset();
+                auto destination = m_imageData.data();
+                auto blockSize = format.blockSizeBytes();
+
+                unpack_astc_2d_ldr(
+                    reinterpret_cast<uint8_t *>(destination),
+                    image.storageInfo().storedWidth() * sizeof(uint32_t),
+                    source,
+                    blockSize * ((image.storageInfo().activeWidth() + format.blockWidth() - 1) / format.blockWidth()),
+                    image.storageInfo().activeWidth(),
+                    image.storageInfo().activeHeight(),
+                    format.blockWidth(),
+                    format.blockHeight(),
+                    true);
+
+                break;
+            }
 
             default:
                 throw std::runtime_error("ExtractedTextureImage: texture encoding class is not supported: " +

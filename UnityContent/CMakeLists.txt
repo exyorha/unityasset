@@ -35,6 +35,9 @@ function(unity_content_generate_library target_name unity_version)
         ${UNITY_CONTENT_SOURCE_DIR}/stb_image_write_config.cpp
         ${UNITY_CONTENT_SOURCE_DIR}/stb_image_write_config.h
 
+        ${UNITY_CONTENT_SOURCE_DIR}/texcompress_astc.cpp
+        ${UNITY_CONTENT_SOURCE_DIR}/texcompress_astc.h
+
         ${UNITY_CONTENT_SOURCE_DIR}/include/UnityAsset/UnityTextureTypes.h
         ${UNITY_CONTENT_SOURCE_DIR}/UnityTextureTypes.cpp
 
