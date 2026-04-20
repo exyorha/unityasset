@@ -37,7 +37,8 @@ File.open(ARGV[0], "rb") do |inf|
 
             db.files.each do |file|
                 File.open("#{ARGV[1]}/#{file.file_name}.cldb", "wb+") do |outf|
-                   IO.copy_stream classfile, outf, file.file_length, file.file_offset
+                   classfile.seek file.file_offset
+                   IO.copy_stream classfile, outf, file.file_length
 
                    outf.rewind
 
