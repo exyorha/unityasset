@@ -5,6 +5,23 @@ function(unity_content_generate_library target_name unity_version)
     set(bindir "${CMAKE_CURRENT_BINARY_DIR}/generated_${target_name}")
 
     add_library(${target_name} STATIC
+        ${UNITY_CONTENT_SOURCE_DIR}/include/UnityAsset/Animation/CurveAttributes.h
+
+        ${UNITY_CONTENT_SOURCE_DIR}/include/UnityAsset/Animation/CurveBinding.h
+        ${UNITY_CONTENT_SOURCE_DIR}/Animation/CurveBinding.cpp
+
+        ${UNITY_CONTENT_SOURCE_DIR}/include/UnityAsset/Animation/CurveBindingSet.h
+        ${UNITY_CONTENT_SOURCE_DIR}/Animation/CurveBindingSet.cpp
+
+        ${UNITY_CONTENT_SOURCE_DIR}/include/UnityAsset/Animation/StreamedCurveKey.h
+        ${UNITY_CONTENT_SOURCE_DIR}/Animation/StreamedCurveKey.cpp
+
+        ${UNITY_CONTENT_SOURCE_DIR}/include/UnityAsset/Animation/StreamedFrame.h
+        ${UNITY_CONTENT_SOURCE_DIR}/Animation/StreamedFrame.cpp
+
+        ${UNITY_CONTENT_SOURCE_DIR}/include/UnityAsset/Animation/UnpackedStreamedClip.h
+        ${UNITY_CONTENT_SOURCE_DIR}/Animation/UnpackedStreamedClip.cpp
+
         ${UNITY_CONTENT_SOURCE_DIR}/include/UnityAsset/Environment/LinkedEnvironment.h
         ${UNITY_CONTENT_SOURCE_DIR}/Environment/LinkedEnvironment.cpp
 

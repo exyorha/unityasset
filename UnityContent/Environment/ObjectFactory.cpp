@@ -27,6 +27,7 @@ namespace UnityAsset {
         { UnityClasses::Shader::ClassID,                   deserialize<UnityClasses::Shader>       },
         { UnityClasses::MeshCollider::ClassID,             deserialize<UnityClasses::MeshCollider>   },
         { UnityClasses::BoxCollider::ClassID,              deserialize<UnityClasses::BoxCollider>    },
+        { UnityClasses::AnimationClip::ClassID,            deserialize<UnityClasses::AnimationClip>        },
         { UnityClasses::Cubemap::ClassID,                  deserialize<UnityClasses::Cubemap>        },
         { UnityClasses::Avatar::ClassID,                   deserialize<UnityClasses::Avatar>        },
         { UnityClasses::Animator::ClassID,                 deserialize<UnityClasses::Animator>        },
