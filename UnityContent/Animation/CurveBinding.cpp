@@ -8,6 +8,7 @@ namespace UnityAsset {
         m_curveIndex(curveIndex),
         m_curveCount(1),
         m_drivenObject(drivenObject),
+        m_pathID(genericBinding.path),
         m_attribute(genericBinding.attribute),
         m_typeID(genericBinding.typeID),
         m_customType(genericBinding.customType) {

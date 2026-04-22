@@ -37,6 +37,10 @@ namespace UnityAsset {
             return m_drivenObject;
         }
 
+        inline uint32_t pathID() const {
+            return m_pathID;
+        }
+
         inline uint32_t attribute() const {
             return m_attribute;
         }
@@ -53,6 +57,7 @@ namespace UnityAsset {
         size_t m_curveIndex;
         size_t m_curveCount;
         UnityClasses::GameObject *m_drivenObject;
+        uint32_t m_pathID;
         uint32_t m_attribute;
         uint32_t m_typeID;
         uint32_t m_customType;
