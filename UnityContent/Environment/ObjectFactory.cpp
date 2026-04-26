@@ -30,6 +30,7 @@ namespace UnityAsset {
         { UnityClasses::AnimationClip::ClassID,            deserialize<UnityClasses::AnimationClip>        },
         { UnityClasses::Cubemap::ClassID,                  deserialize<UnityClasses::Cubemap>        },
         { UnityClasses::Avatar::ClassID,                   deserialize<UnityClasses::Avatar>        },
+        { UnityClasses::AnimatorController::ClassID,       deserialize<UnityClasses::AnimatorController>        },
         { UnityClasses::Animator::ClassID,                 deserialize<UnityClasses::Animator>        },
         { UnityClasses::RenderSettings::ClassID,           deserialize<UnityClasses::RenderSettings> },
         { UnityClasses::Light::ClassID,                    deserialize<UnityClasses::Light>          },
